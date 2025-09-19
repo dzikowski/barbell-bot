@@ -4,7 +4,7 @@ services:
     env: node
     schedule: "*/7 * * * *"   # every 7 minutes
     buildCommand: npm install && npm run build
-    startCommand: node dist/bot.js
+    startCommand: npm start
     autoDeploy: true
     disk:
       name: barbell-bot-data
@@ -16,4 +16,4 @@ services:
       - key: DATABASE_URL
         value: file:/var/data/bot.sqlite
       - key: PRIVATE_KEY_PATH
-        value: /etc/secrets/private_key.pem
+        value: /etc/secrets/private-key
