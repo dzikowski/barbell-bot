@@ -9,7 +9,7 @@
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "npm run format && eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "dev": "PRIVATE_KEY_PATH=test-private-key DATABASE_PROVIDER=sqlite DATABASE_URL=file:test-database.sqlite ts-node src/main.ts",
+    "dev": "PRIVATE_KEY_PATH=test-private-key DATABASE_URL=file:test-database.sqlite ts-node src/main.ts",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push"
   },
