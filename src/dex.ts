@@ -30,8 +30,10 @@ class GalaDex implements Dex {
       const response = await fetch(url);
 
       if (!response.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const body = await response.json().catch(e => `${e}`);
         throw loggedError(
-          `HTTP error! Fetching price for ${info}: ${response.status}`,
+          `HTTP error! Fetching price for ${info}: ${response.status}, ${body}`,
         );
       }
 
