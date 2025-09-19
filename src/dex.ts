@@ -1,14 +1,57 @@
 import { Crypto } from "./crypto";
+import { loggedError } from "./log";
+
+// Native fetch is available in Node.js 18+ and TypeScript ES2022+
+declare const fetch: typeof globalThis.fetch;
 
 export interface Dex {
-  fetchPrice(sell: string, buy: string): Promise<number>;
+  fetchPrice(sell: string, amount: number, buy: string): Promise<number>;
 }
+
+const GALA_FEE_RATE = 500;
 
 class GalaDex implements Dex {
   constructor(private readonly crypto: Crypto) {}
 
-  async fetchPrice(sell: string, buy: string): Promise<number> {
-    throw new Error(`Not implemented: ${sell}/${buy}`);
+  async fetchPrice(sell: string, amount: number, buy: string): Promise<number> {
+    const tokenIn = `${sell}$Unit$none$none`;
+    const tokenOut = `${buy}$Unit$none$none`;
+    const amountIn = amount;
+    const fee = GALA_FEE_RATE;
+
+    const info = `${sell}/${amount}, ${buy}, ${fee / 10000}%`;
+
+    const url =
+      "https://dex-backend-prod1.defi.gala.com/v1/trade/quote" +
+      `?tokenIn=${encodeURIComponent(tokenIn)}&tokenOut=${encodeURIComponent(tokenOut)}` +
+      `&amountIn=${amountIn}&fee=${fee}`;
+
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw loggedError(
+          `HTTP error! Fetching price for ${info}: ${response.status}`,
+        );
+      }
+
+      const data = (await response.json()) as { amountOut?: string | number };
+
+      // Extract the price from the response
+      // The response should contain amountOut which represents the price
+      if (data.amountOut === undefined) {
+        throw loggedError(
+          `Invalid response format: missing amountOut for ${info}`,
+        );
+      }
+
+      const price = parseFloat(String(data.amountOut));
+
+      return price;
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      throw loggedError(`Failed to fetch price for ${info}: ${errorMessage}`);
+    }
   }
 }
 
@@ -19,12 +62,12 @@ class TestDex implements Dex {
     this.prices[sell] = { ...(this.prices[sell] ?? {}), [buy]: price };
   }
 
-  async fetchPrice(sell: string, buy: string): Promise<number> {
+  async fetchPrice(sell: string, amount: number, buy: string): Promise<number> {
     const price = this.prices[sell]?.[buy];
     if (price === undefined) {
       throw new Error(`Price for ${sell}/${buy} not found`);
     }
-    return price;
+    return price * amount;
   }
 }
 

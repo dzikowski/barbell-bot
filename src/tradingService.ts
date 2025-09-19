@@ -1,7 +1,16 @@
 import { Dex } from "./dex";
 import { Db } from "./db";
 import { Crypto } from "./crypto";
-import { logError, logWarning } from "./log";
+import { log } from "./log";
+
+const pools: [string, string, number][] = [
+  ["GALA", "GUSDT", 100],
+  ["GALA", "GUSDC", 100],
+  ["GUSDT", "GWETH", 10],
+  ["GALA", "GWBTC", 100],
+  ["GUSDC", "GWETH", 10],
+  ["GSOL", "GWBTC", 0.1],
+];
 
 export class TradingService {
   constructor(
@@ -11,7 +20,12 @@ export class TradingService {
   ) {}
 
   async fetchPrices(): Promise<void> {
-    logWarning("Fetching prices NOT implemented...");
-    logError("Fetching prices NOT implemented...");
+    log("Fetching prices...");
+    await Promise.all(
+      pools.map(async ([sell, buy, amount]) => {
+        const price = await this.dex.fetchPrice(sell, amount, buy);
+        log(`Price for ${sell}/${amount}, ${buy}: ${price}`);
+      }),
+    );
   }
 }

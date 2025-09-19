@@ -73,7 +73,6 @@ module.exports = [
       "no-debugger": "error",
       "no-duplicate-imports": "error",
       "consistent-return": "error",
-      "no-magic-numbers": ["warn", { ignore: [0, 1, -1], ignoreArrayIndexes: true }],
       "no-param-reassign": "error",
       "no-shadow": "off",
       "@typescript-eslint/no-shadow": "error",
@@ -104,8 +103,7 @@ module.exports = [
   {
     files: ["**/*.test.ts", "**/*.spec.ts"],
     rules: {
-      "no-console": "off",
-      "no-magic-numbers": "off",
+      "no-console": "off"
     },
   },
   {
