@@ -24,7 +24,7 @@ export class TradingService {
     await Promise.all(
       pools.map(async ([sell, buy, amount]) => {
         const price = await this.dex.fetchPrice(sell, amount, buy);
-        log(`Price for ${sell}/${amount}, ${buy}: ${price}`);
+        log(`Price for ${sell}/${buy}, ${amount}: ${price}`);
       }),
     );
   }
