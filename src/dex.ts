@@ -8,7 +8,7 @@ export interface Dex {
   fetchPrice(sell: string, amount: number, buy: string): Promise<number>;
 }
 
-const GALA_FEE_RATE = 500;
+const GALA_FEE_RATE = 10000;
 
 class GalaDex implements Dex {
   constructor(private readonly crypto: Crypto) {}
@@ -25,29 +25,32 @@ class GalaDex implements Dex {
       "https://dex-backend-prod1.defi.gala.com/v1/trade/quote" +
       `?tokenIn=${encodeURIComponent(tokenIn)}&tokenOut=${encodeURIComponent(tokenOut)}` +
       `&amountIn=${amountIn}&fee=${fee}`;
-
     try {
       const response = await fetch(url);
 
       if (!response.ok) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const body = await response.json().catch(e => `${e}`);
+        const body = await response.text();
         throw loggedError(
           `HTTP error! Fetching price for ${info}: ${response.status}, ${body}`,
         );
       }
 
-      const data = (await response.json()) as { amountOut?: string | number };
+      const responseData = (await response.json()) as {
+        status: number;
+        message: string;
+        error: boolean;
+        data?: { amountOut?: string | number };
+      };
 
       // Extract the price from the response
       // The response should contain amountOut which represents the price
-      if (data.amountOut === undefined) {
+      if (responseData.data?.amountOut === undefined) {
         throw loggedError(
           `Invalid response format: missing amountOut for ${info}`,
         );
       }
 
-      const price = parseFloat(String(data.amountOut));
+      const price = parseFloat(String(responseData.data.amountOut));
 
       return price;
     } catch (e) {
