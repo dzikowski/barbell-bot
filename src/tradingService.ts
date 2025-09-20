@@ -76,8 +76,8 @@ export class TradingService {
 
     balanceInfos.forEach(b => {
       const message =
-        `${b.token}:\t${b.amount.toFixed(8)}\t(${b.value[gala].toFixed(2)} ${gala}, ` +
-        `${b.value[usdt].toFixed(2)} ${usdt}, ${b.percentage.toFixed(2)}%)`;
+        `${b.token}:\t${b.amount.toFixed(8)}\t$${b.value[usdt].toFixed(2)}\t` +
+        `(${b.value[gala].toFixed(2)} ${gala}, ${b.value[usdt].toFixed(2)} ${usdt}, ${b.percentage.toFixed(2)}%)`;
       log(message);
     });
 
