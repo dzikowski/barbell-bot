@@ -4,8 +4,21 @@ import { loggedError } from "./log";
 // Native fetch is available in Node.js 18+ and TypeScript ES2022+
 declare const fetch: typeof globalThis.fetch;
 
+export interface PriceResponse {
+  amountIn: number;
+  amountOut: number;
+  fee: number;
+  currentSqrtPrice: number;
+  newSqrtPrice: number;
+}
+
 export interface Dex {
-  fetchPrice(sell: string, amount: number, buy: string): Promise<number>;
+  fetchPrice(
+    tokenIn: string,
+    amountIn: number | undefined,
+    tokenOut: string,
+    amountOut: number | undefined,
+  ): Promise<PriceResponse>;
 }
 
 const GALA_FEE_RATE = 10000;
@@ -13,18 +26,30 @@ const GALA_FEE_RATE = 10000;
 class GalaDex implements Dex {
   constructor(private readonly crypto: Crypto) {}
 
-  async fetchPrice(sell: string, amount: number, buy: string): Promise<number> {
-    const tokenIn = `${sell}$Unit$none$none`;
-    const tokenOut = `${buy}$Unit$none$none`;
-    const amountIn = amount;
-    const fee = GALA_FEE_RATE;
+  async fetchPrice(
+    tokenIn: string,
+    amountIn: number | undefined,
+    tokenOut: string,
+    amountOut: number | undefined,
+  ): Promise<PriceResponse> {
+    if (amountIn === undefined && amountOut === undefined) {
+      throw loggedError("Either amountIn or amountOut must be provided");
+    }
 
-    const info = `${sell}/${amount}, ${buy}, ${fee / 10000}%`;
+    const tokenInQuery = `tokenIn=${encodeURIComponent(`${tokenIn}$Unit$none$none`)}`;
+    const tokenOutQuery = `tokenOut=${encodeURIComponent(`${tokenOut}$Unit$none$none`)}`;
+    const feeQuery = `fee=${GALA_FEE_RATE}`;
+    const amountQuery =
+      amountIn === undefined
+        ? `amountOut=${amountOut}`
+        : `amountIn=${amountIn}`;
+
+    const info = `${tokenIn}/${amountIn}, ${amountIn ?? "-"}/${amountOut ?? "-"}, ${GALA_FEE_RATE / 10000}%`;
 
     const url =
       "https://dex-backend-prod1.defi.gala.com/v1/trade/quote" +
-      `?tokenIn=${encodeURIComponent(tokenIn)}&tokenOut=${encodeURIComponent(tokenOut)}` +
-      `&amountIn=${amountIn}&fee=${fee}`;
+      `?${tokenInQuery}&${tokenOutQuery}&${amountQuery}&${feeQuery}`;
+
     try {
       const response = await fetch(url);
 
@@ -35,22 +60,34 @@ class GalaDex implements Dex {
         );
       }
 
-      const responseData = (await response.json()) as {
+      const respJson = (await response.json()) as {
         status: number;
         message: string;
         error: boolean;
-        data?: { amountOut?: string | number };
+        data?: {
+          fee?: string | number;
+          amountIn?: string | number;
+          amountOut?: string | number;
+          currentSqrtPrice?: string | number;
+          newSqrtPrice?: string | number;
+        };
       };
 
       // Extract the price from the response
       // The response should contain amountOut which represents the price
-      if (responseData.data?.amountOut === undefined) {
+      if (respJson.data?.amountOut === undefined) {
         throw loggedError(
           `Invalid response format: missing amountOut for ${info}`,
         );
       }
 
-      const price = parseFloat(String(responseData.data.amountOut));
+      const price = {
+        amountIn: parseFloat(String(respJson.data.amountIn)),
+        amountOut: parseFloat(String(respJson.data.amountOut)),
+        fee: parseFloat(String(respJson.data.fee)),
+        currentSqrtPrice: parseFloat(String(respJson.data.currentSqrtPrice)),
+        newSqrtPrice: parseFloat(String(respJson.data.newSqrtPrice)),
+      };
 
       return price;
     } catch (e) {
@@ -63,16 +100,29 @@ class GalaDex implements Dex {
 class TestDex implements Dex {
   private readonly prices: Record<string, Record<string, number>> = {};
 
-  setPrice(sell: string, buy: string, price: number) {
-    this.prices[sell] = { ...(this.prices[sell] ?? {}), [buy]: price };
+  setPrice(tokenIn: string, tokenOut: string, price: number) {
+    this.prices[tokenIn] = {
+      ...(this.prices[tokenIn] ?? {}),
+      [tokenOut]: price,
+    };
   }
 
-  async fetchPrice(sell: string, amount: number, buy: string): Promise<number> {
-    const price = this.prices[sell]?.[buy];
+  async fetchPrice(
+    tokenIn: string,
+    amountIn: number,
+    tokenOut: string,
+  ): Promise<PriceResponse> {
+    const price = this.prices[tokenIn]?.[tokenOut];
     if (price === undefined) {
-      throw new Error(`Price for ${sell}/${buy} not found`);
+      throw new Error(`Price for ${tokenIn}/${tokenOut} not found`);
     }
-    return price * amount;
+    return {
+      amountIn,
+      amountOut: price * amountIn,
+      fee: GALA_FEE_RATE,
+      currentSqrtPrice: Math.sqrt(price),
+      newSqrtPrice: Math.sqrt(price * 0.97),
+    };
   }
 }
 

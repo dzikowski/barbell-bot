@@ -11,9 +11,11 @@ datasource db {
 }
 
 model Price {
-  id     String   @id @default(cuid())
-  date   DateTime
-  buy    String
-  sell   String
-  amount Float
+  id        String   @id @default(cuid())
+  date      DateTime
+  tokenIn   String
+  amountIn  Float
+  tokenOut  String
+  amountOut Float
+  fee       Float
 }

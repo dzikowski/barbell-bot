@@ -22,9 +22,17 @@ export class TradingService {
   async fetchPrices(): Promise<void> {
     log("Fetching prices...");
     await Promise.all(
-      pools.map(async ([sell, buy, amount]) => {
-        const price = await this.dex.fetchPrice(sell, amount, buy);
-        log(`Price for ${sell}/${buy}, ${amount}: ${price}`);
+      pools.map(async ([tokenIn, tokenOut, amountIn]) => {
+        const [p1, p2] = await Promise.all([
+          this.dex.fetchPrice(tokenIn, amountIn, tokenOut, undefined),
+          this.dex.fetchPrice(tokenOut, undefined, tokenIn, amountIn),
+        ]);
+
+        const message = 
+          `Sell: ${amountIn} ${tokenIn} to get ${p1.amountOut} ${tokenOut} (fee: ${p1.fee / 10000}%)
+           Buy:  ${amountIn} ${tokenIn} to get ${p2.amountIn} ${tokenOut} (fee: ${p2.fee / 10000}%)`;
+
+        log(message);
       }),
     );
   }

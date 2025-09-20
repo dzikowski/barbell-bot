@@ -9,10 +9,29 @@ void describe("TestDex", () => {
     const dex = galaDex(testCrypto());
 
     // When
-    const price = await dex.fetchPrice("GALA", 1, "GUSDT");
+    const p = await dex.fetchPrice("GALA", 1, "GUSDT", undefined);
 
     // Then
-    assert.strictEqual(typeof price, "number");
-    assert.ok(price > 0, `Expected price > 0, got ${price}`);
+    assert.strictEqual(typeof p.amountOut, "number");
+    assert.ok(p.amountOut > 0, `Expected amountOut > 0, got ${p.amountOut}`);
+  });
+
+  void test("should check the reverse price", async () => {
+    // Given
+    const dex = galaDex(testCrypto());
+    const amount = 100;
+    const p1 = await dex.fetchPrice("GUSDC", amount, "GALA", undefined);
+    console.log(p1);
+
+    // When
+    const p2 = await dex.fetchPrice("GALA", undefined, "GUSDC", amount);
+    console.log(p2);
+
+    // Then - allow for fees and slippage (within 5%)
+    const diff = Math.abs(p1.amountIn - p2.amountOut) / p1.amountIn;
+    assert.ok(
+      diff < 0.05,
+      `Expected within 5% of ${p1.amountIn / amount}, got ${p2.amountOut / amount} (${(diff * 100).toFixed(2)}% diff)`,
+    );
   });
 });
