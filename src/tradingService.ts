@@ -42,8 +42,8 @@ export class TradingService {
         log(message);
 
         // Collect prices for database storage
-        prices.push({ ...p1, date, tokenIn, tokenOut });
-        prices.push({ ...p2, date, tokenIn: tokenOut, tokenOut: tokenIn });
+        prices.push({ ...p1, date, amountIn, tokenIn, tokenOut });
+        prices.push({ ...p2, date, amountOut:amountIn, tokenIn: tokenOut, tokenOut: tokenIn });
       }),
     );
 
