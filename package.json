@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/main.js",
-    "test": "node --import tsx --test src/dex.spec.ts",
-    "test:watch": "node --import tsx --test --watch src/dex.spec.ts",
+    "test": "tsx --test src/tradingService.spec.ts",
+    "test:watch": "tsx --test --watch src/tradingService.spec.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "npm run format && eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",

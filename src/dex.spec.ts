@@ -9,7 +9,7 @@ void describe("TestDex", () => {
     const dex = galaDex(testCrypto());
 
     // When
-    const p = await dex.fetchPrice("GALA", 1, "GUSDT", undefined);
+    const p = await dex.fetchSwapPrice("GALA", 1, "GUSDT", undefined);
 
     // Then
     assert.strictEqual(typeof p.amountOut, "number");
@@ -20,11 +20,11 @@ void describe("TestDex", () => {
     // Given
     const dex = galaDex(testCrypto());
     const amount = 100;
-    const p1 = await dex.fetchPrice("GUSDC", amount, "GALA", undefined);
+    const p1 = await dex.fetchSwapPrice("GUSDC", amount, "GALA", undefined);
     console.log(p1);
 
     // When
-    const p2 = await dex.fetchPrice("GALA", undefined, "GUSDC", amount);
+    const p2 = await dex.fetchSwapPrice("GALA", undefined, "GUSDC", amount);
     console.log(p2);
 
     // Then - allow for fees and slippage (within 5%)

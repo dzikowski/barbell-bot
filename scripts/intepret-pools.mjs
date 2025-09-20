@@ -27,6 +27,7 @@ function printPools(safeToken) {
         "$" + Math.round(pool.token1TvlUsd),
         pool.token1,
         "$" + Math.round(pool.tvl),
+        pool.fee
       ];
       /* eslint-disable-next-line no-undef */
       console.log(vals.join("\t"));

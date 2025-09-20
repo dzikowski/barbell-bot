@@ -1,17 +1,12 @@
-import { Dex } from "./dex";
+import { Dex, PoolResponse } from "./dex";
 import { Db } from "./db";
 import { Crypto } from "./crypto";
 import { log } from "./log";
 import { Price } from "./types";
 
-const pools: [string, string, number][] = [
-  ["GALA", "GUSDT", 100],
-  ["GALA", "GUSDC", 100],
-  ["GUSDT", "GWETH", 10],
-  ["GALA", "GWBTC", 100],
-  ["GUSDC", "GWETH", 10],
-  ["GSOL", "GWBTC", 0.1],
-];
+const usdt = "GUSDT";
+const gala = "GALA";
+const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX"];
 
 export class TradingService {
   constructor(
@@ -22,40 +17,62 @@ export class TradingService {
 
   async fetchPrices(): Promise<void> {
     const date = new Date();
+
+    log("Fetching prices from pools...");
+    const pools = await this.dex.fetchPools();
     const prices: Price[] = [];
 
-    log("Fetching prices...");
-    await Promise.all(
-      pools.map(async ([tokenIn, tokenOut, amountIn]) => {
-        const [p1, p2] = await Promise.all([
-          this.dex.fetchPrice(tokenIn, amountIn, tokenOut, undefined),
-          this.dex.fetchPrice(tokenOut, undefined, tokenIn, amountIn),
-        ]);
+    pools.forEach(pool => {
+      // special case - GALA/GUSDT
+      if (
+        (pool.token0 === gala && pool.token1 === usdt) ||
+        (pool.token0 === usdt && pool.token1 === gala)
+      ) {
+        prices.push(makePrice(date, usdt, pool));
+      }
 
-        const spread = (p2.amountIn - p1.amountOut) / p1.amountOut;
+      // regular case when one of the tokens is GALA and the other is the array
+      else if (
+        (pool.token0 === gala && otherTokens.includes(pool.token1)) ||
+        (pool.token1 === gala && otherTokens.includes(pool.token0))
+      ) {
+        prices.push(makePrice(date, gala, pool));
+      }
+    });
 
-        const message =
-          `Sell ${amountIn} ${tokenIn} for ${p1.amountOut} ${tokenOut}, ` +
-          `buy ${amountIn} ${tokenIn} for ${p2.amountIn} ${tokenOut}, ` +
-          `(fee: ${p2.fee / 10000}%, ${spread.toFixed(4)}% spread)`;
-
-        log(message);
-
-        // Collect prices for database storage
-        prices.push({ ...p1, date, amountIn, tokenIn, tokenOut });
-        prices.push({
-          ...p2,
-          date,
-          amountOut: amountIn,
-          tokenIn: tokenOut,
-          tokenOut: tokenIn,
-        });
-      }),
-    );
-
-    log(`Prices fetched in ${new Date().getTime() - date.getTime()}ms`);
+    prices.forEach(price => {
+      log(`${price.tokenIn}/${price.tokenOut}: ${price.price}`);
+    });
 
     log("Saving prices to database...");
     await this.db.savePrices(prices);
+  }
+}
+
+export function makePrice(
+  date: Date,
+  baseToken: string,
+  pool: PoolResponse,
+): Price {
+  if (pool.token0 === baseToken) {
+    return {
+      date,
+      tokenIn: pool.token1,
+      tokenOut: baseToken,
+      price: pool.token0Price,
+      fee: pool.fee,
+    };
+  } else if (pool.token1 === baseToken) {
+    return {
+      date,
+      tokenIn: pool.token0,
+      tokenOut: baseToken,
+      price: pool.token1Price,
+      fee: pool.fee,
+    };
+  } else {
+    throw new Error(
+      `Pool ${pool.token0}/${pool.token1} is not a valid pool for ${baseToken}`,
+    );
   }
 }

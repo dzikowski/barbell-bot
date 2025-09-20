@@ -1,5 +1,5 @@
 import { Crypto } from "./crypto";
-import { loggedError } from "./log";
+import { log, loggedError } from "./log";
 
 // Native fetch is available in Node.js 18+ and TypeScript ES2022+
 declare const fetch: typeof globalThis.fetch;
@@ -12,21 +12,31 @@ export interface PriceResponse {
   newSqrtPrice: number;
 }
 
+export interface PoolResponse {
+  token0: string;
+  token0Price: number;
+  token1: string;
+  token1Price: number;
+  fee: number;
+}
+
 export interface Dex {
-  fetchPrice(
+  fetchSwapPrice(
     tokenIn: string,
     amountIn: number | undefined,
     tokenOut: string,
     amountOut: number | undefined,
   ): Promise<PriceResponse>;
+
+  fetchPools(): Promise<PoolResponse[]>;
 }
 
-const GALA_FEE_RATE = 10000;
+const SUPPORTED_FEE_RATE = 10_000;
 
 class GalaDex implements Dex {
   constructor(private readonly crypto: Crypto) {}
 
-  async fetchPrice(
+  async fetchSwapPrice(
     tokenIn: string,
     amountIn: number | undefined,
     tokenOut: string,
@@ -38,13 +48,13 @@ class GalaDex implements Dex {
 
     const tokenInQuery = `tokenIn=${encodeURIComponent(`${tokenIn}$Unit$none$none`)}`;
     const tokenOutQuery = `tokenOut=${encodeURIComponent(`${tokenOut}$Unit$none$none`)}`;
-    const feeQuery = `fee=${GALA_FEE_RATE}`;
+    const feeQuery = `fee=${SUPPORTED_FEE_RATE}`;
     const amountQuery =
       amountIn === undefined
         ? `amountOut=${amountOut}`
         : `amountIn=${amountIn}`;
 
-    const info = `${tokenIn}/${amountIn}, ${amountIn ?? "-"}/${amountOut ?? "-"}, ${GALA_FEE_RATE / 10000}%`;
+    const info = `${tokenIn}/${amountIn}, ${amountIn ?? "-"}/${amountOut ?? "-"}, ${SUPPORTED_FEE_RATE / 10_000}%`;
 
     const url =
       "https://dex-backend-prod1.defi.gala.com/v1/trade/quote" +
@@ -95,6 +105,37 @@ class GalaDex implements Dex {
       throw loggedError(`Failed to fetch price for ${info}: ${errorMessage}`);
     }
   }
+
+  async fetchPools(): Promise<PoolResponse[]> {
+    const url =
+      "https://dex-backend-prod1.defi.gala.com/explore/pools" +
+      "?limit=20&page=1&sortBy=volume1d&sortOrder=desc";
+    const response = await fetch(url);
+    const respJson = (await response.json()) as {
+      status: number;
+      message: string;
+      error: boolean;
+      data: {
+        pools: {
+          token0: string;
+          token0Price: string | number;
+          token1: string;
+          token1Price: string | number;
+          fee: string | number;
+        }[];
+      };
+    };
+
+    return respJson.data.pools
+      .map(pool => ({
+        token0: pool.token0,
+        token0Price: parseFloat(String(pool.token0Price)),
+        token1: pool.token1,
+        token1Price: parseFloat(String(pool.token1Price)),
+        fee: parseFloat(String(pool.fee)),
+      }))
+      .filter(pool => pool.fee === 1); // different value in the API
+  }
 }
 
 class TestDex implements Dex {
@@ -107,7 +148,7 @@ class TestDex implements Dex {
     };
   }
 
-  async fetchPrice(
+  async fetchSwapPrice(
     tokenIn: string,
     amountIn: number,
     tokenOut: string,
@@ -119,10 +160,14 @@ class TestDex implements Dex {
     return {
       amountIn,
       amountOut: price * amountIn,
-      fee: GALA_FEE_RATE,
+      fee: SUPPORTED_FEE_RATE,
       currentSqrtPrice: Math.sqrt(price),
       newSqrtPrice: Math.sqrt(price * 0.97),
     };
+  }
+
+  async fetchPools(): Promise<PoolResponse[]> {
+    return [];
   }
 }
 
