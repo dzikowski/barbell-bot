@@ -31,8 +31,8 @@ export class TradingService {
         const spread = (p2.amountIn - p1.amountOut) / p1.amountOut;
 
         const message =
-          `Sell:   ${amountIn} ${tokenIn} and get ${p1.amountOut} ${tokenOut} (fee: ${p1.fee / 10000}%)\n` +
-          `Buy:    ${amountIn} ${tokenIn} and pay ${p2.amountIn} ${tokenOut} (fee: ${p2.fee / 10000}%)\n` +
+          `Sell:${amountIn} ${tokenIn} for ${p1.amountOut} ${tokenOut} (fee: ${p1.fee / 10000}%)\n` +
+          `Buy: ${amountIn} ${tokenIn} for ${p2.amountIn} ${tokenOut} (fee: ${p2.fee / 10000}%). ` +
           `Spread: ${spread.toFixed(4)}%`;
 
         log(message);

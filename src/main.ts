@@ -1,21 +1,21 @@
 import { cryptoFromPath } from "./crypto";
 import { Db, prismaDb } from "./db";
 import { galaDex } from "./dex";
-import { log, logError } from "./log";
+import { logError } from "./log";
 import { TradingService } from "./tradingService";
 
 async function main(): Promise<void> {
   let db: Db | undefined;
 
   try {
-    log("Setting up...");
+    // Setting up
     const crypto = cryptoFromPath(process.env.PRIVATE_KEY_PATH);
     db = prismaDb;
     await Promise.all([crypto.ensurePrivateKey(), db.connect()]);
 
     const service = new TradingService(crypto, db, galaDex(crypto));
 
-    log("Fetching prices...");
+    // Bot logic
     await service.fetchPrices();
   } finally {
     await db?.disconnect();
