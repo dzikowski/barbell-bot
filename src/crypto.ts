@@ -1,15 +1,17 @@
-import { ChainCallDTO } from "@gala-chain/api";
+import { ChainCallDTO, signatures } from "@gala-chain/api";
 import { log, loggedError } from "./log";
 import { promises as fs } from "fs";
 
 export interface Crypto {
   ensurePrivateKey(): Promise<void>;
   sign<T extends ChainCallDTO>(dto: T): T;
+  getWallet(): string;
 }
 
 class CryptoFromPath implements Crypto {
   private readonly privateKeyPath: string;
   private privateKey: string | undefined;
+  private wallet: string | undefined;
 
   constructor(path: string | undefined) {
     if (path === undefined || path === "") {
@@ -18,11 +20,15 @@ class CryptoFromPath implements Crypto {
 
     this.privateKeyPath = path;
     this.privateKey = undefined;
+    this.wallet = undefined;
   }
 
   async ensurePrivateKey(): Promise<void> {
     try {
       this.privateKey = (await fs.readFile(this.privateKeyPath, "utf8")).trim();
+      const publicKey = signatures.getPublicKey(this.privateKey);
+      const ethAddress = signatures.getEthAddress(publicKey);
+      this.wallet = `eth|${ethAddress}`;
     } catch (error) {
       throw loggedError(
         `Failed to read private key from the provided path: ${error}`,
@@ -42,6 +48,13 @@ class CryptoFromPath implements Crypto {
     }
     return this.privateKey;
   }
+
+  getWallet(): string {
+    if (this.wallet === undefined) {
+      throw loggedError("Wallet is not loaded");
+    }
+    return this.wallet;
+  }
 }
 
 class TestCrypto implements Crypto {
@@ -50,6 +63,12 @@ class TestCrypto implements Crypto {
   private readonly privateKey =
     "fe323cf47441956c64e0b94dace1e4645d24149f1fe654a05b1099389c7cc7c9";
 
+  private readonly wallet: string;
+
+  constructor(wallet: string) {
+    this.wallet = wallet;
+  }
+
   async ensurePrivateKey(): Promise<void> {
     return;
   }
@@ -57,12 +76,16 @@ class TestCrypto implements Crypto {
   sign<T extends ChainCallDTO>(dto: T): T {
     return dto.signed(this.privateKey);
   }
+
+  getWallet(): string {
+    return this.wallet;
+  }
 }
 
 export function cryptoFromPath(path: string | undefined): Crypto {
   return new CryptoFromPath(path);
 }
 
-export function testCrypto(): Crypto {
-  return new TestCrypto();
+export function testCrypto(wallet: string): Crypto {
+  return new TestCrypto(wallet);
 }

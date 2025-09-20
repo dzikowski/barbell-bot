@@ -4,9 +4,12 @@ import { galaDex } from "./dex";
 import { testCrypto } from "./crypto";
 
 void describe("TestDex", () => {
+  // one from https://swap.gala.com/leaderboard/
+  const wallet = "eth|c32c3526a28a5424c7c0ED999f2CDDA6028a4C91";
+
   void test("should fetch price", async () => {
     // Given
-    const dex = galaDex(testCrypto());
+    const dex = galaDex(testCrypto(wallet));
 
     // When
     const p = await dex.fetchSwapPrice("GALA", 1, "GUSDT", undefined);
@@ -18,7 +21,7 @@ void describe("TestDex", () => {
 
   void test("should check the reverse price", async () => {
     // Given
-    const dex = galaDex(testCrypto());
+    const dex = galaDex(testCrypto(wallet));
     const amount = 100;
     const p1 = await dex.fetchSwapPrice("GUSDC", amount, "GALA", undefined);
     console.log(p1);
@@ -32,6 +35,20 @@ void describe("TestDex", () => {
     assert.ok(
       diff < 0.05,
       `Expected within 5% of ${p1.amountIn / amount}, got ${p2.amountOut / amount} (${(diff * 100).toFixed(2)}% diff)`,
+    );
+  });
+
+  void test("should fetch balances", async () => {
+    // Given
+    const dex = galaDex(testCrypto(wallet));
+
+    // When
+    const balances = await dex.fetchBalances();
+
+    // Then
+    assert.ok(
+      balances.some(b => b.token === "GALA" && b.amount > 0 && b.decimal === 8),
+      `Expected some GALA in ${JSON.stringify(balances)}`,
     );
   });
 });

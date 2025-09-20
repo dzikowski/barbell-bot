@@ -1,0 +1,18 @@
+{
+    "status": 200,
+    "error": false,
+    "message": "Balance fetched successfully",
+    "data": {
+        "token": [
+            {
+                "image": "https://static.gala.games/images/icons/units/gala.png",
+                "name": "GALA",
+                "decimals": "8",
+                "verify": true,
+                "symbol": "GALA",
+                "quantity": "20000"
+            }
+        ],
+        "count": 1
+    }
+}

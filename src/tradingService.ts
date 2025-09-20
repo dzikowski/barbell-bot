@@ -1,4 +1,4 @@
-import { Dex, PoolResponse } from "./dex";
+import { BalanceResponse, Dex, PoolResponse } from "./dex";
 import { Db } from "./db";
 import { Crypto } from "./crypto";
 import { log } from "./log";
@@ -7,6 +7,21 @@ import { Price } from "./types";
 const usdt = "GUSDT";
 const gala = "GALA";
 const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX"];
+
+interface BalanceInfo {
+  token: string;
+  amount: number;
+  decimal: number;
+  price: {
+    [gala]: number;
+    [usdt]: number;
+  };
+  value: {
+    [gala]: number;
+    [usdt]: number;
+  };
+  percentage: number;
+}
 
 export class TradingService {
   constructor(
@@ -18,8 +33,12 @@ export class TradingService {
   async fetchPrices(): Promise<void> {
     const date = new Date();
 
-    log("Fetching prices from pools...");
-    const pools = await this.dex.fetchPools();
+    log("Fetching data from dex...");
+    const [pools, balances] = (await Promise.all([
+      this.dex.fetchPools(),
+      this.dex.fetchBalances(),
+    ])) as [PoolResponse[], BalanceResponse[]];
+
     const prices: Price[] = [];
 
     pools.forEach(pool => {
@@ -40,9 +59,47 @@ export class TradingService {
       }
     });
 
-    prices.forEach(price => {
-      log(`${price.tokenIn}/${price.tokenOut}: ${price.price}`);
+    const galaUsdtPrice = prices.find(
+      p => p.tokenIn === gala && p.tokenOut === usdt,
+    );
+
+    if (galaUsdtPrice === undefined) {
+      throw new Error(`${gala}/${usdt} price not found`);
+    }
+
+    const balanceInfos: BalanceInfo[] = [gala, ...otherTokens]
+      .map(token => {
+        const balance = balances.find(b => b.token === token);
+        const price = prices.find(p => p.tokenIn === token);
+
+        if (price === undefined) {
+          return undefined;
+        }
+
+        return makeBalanceInfo(balance, price, galaUsdtPrice.price);
+      })
+      .filter(b => b !== undefined);
+
+    const totalValueGala = balanceInfos.reduce(
+      (acc, b) => acc + b.value[gala],
+      0,
+    );
+    const totalValueUsdt = balanceInfos.reduce(
+      (acc, b) => acc + b.value[usdt],
+      0,
+    );
+
+    balanceInfos.forEach(b => {
+      b.percentage = (b.value[gala] / totalValueGala) * 100;
+
+      const message =
+        `${b.token}:\t${b.amount.toFixed(8)}\t(${b.value[gala].toFixed(2)} ${gala}, ` +
+        `${b.value[usdt].toFixed(2)} ${usdt}, ${b.percentage.toFixed(2)}%)`;
+      log(message);
     });
+
+    const totalValueMessage = `Total value: ${totalValueGala.toFixed(2)} ${gala}, ${totalValueUsdt.toFixed(2)} ${usdt}`;
+    log(totalValueMessage);
 
     log("Saving prices to database...");
     await this.db.savePrices(prices);
@@ -75,4 +132,28 @@ export function makePrice(
       `Pool ${pool.token0}/${pool.token1} is not a valid pool for ${baseToken}`,
     );
   }
+}
+
+function makeBalanceInfo(
+  balance: BalanceResponse | undefined,
+  price: Price,
+  galaUsdtPrice: number,
+): BalanceInfo {
+  const galaPrice = price.tokenIn === gala ? 1 : price.price;
+  const usdtPrice =
+    price.tokenOut === usdt ? price.price : price.price / galaUsdtPrice;
+  return {
+    token: price.tokenIn,
+    amount: balance?.amount ?? 0,
+    decimal: balance?.decimal ?? 0,
+    price: {
+      [gala]: galaPrice,
+      [usdt]: usdtPrice,
+    },
+    value: {
+      [gala]: (balance?.amount ?? 0) * galaPrice,
+      [usdt]: (balance?.amount ?? 0) * usdtPrice,
+    },
+    percentage: 0,
+  };
 }

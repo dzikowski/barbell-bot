@@ -1,5 +1,5 @@
 import { Crypto } from "./crypto";
-import { log, loggedError } from "./log";
+import { loggedError } from "./log";
 
 // Native fetch is available in Node.js 18+ and TypeScript ES2022+
 declare const fetch: typeof globalThis.fetch;
@@ -20,6 +20,12 @@ export interface PoolResponse {
   fee: number;
 }
 
+export interface BalanceResponse {
+  token: string;
+  amount: number;
+  decimal: number;
+}
+
 export interface Dex {
   fetchSwapPrice(
     tokenIn: string,
@@ -29,6 +35,8 @@ export interface Dex {
   ): Promise<PriceResponse>;
 
   fetchPools(): Promise<PoolResponse[]>;
+
+  fetchBalances(): Promise<BalanceResponse[]>;
 }
 
 const SUPPORTED_FEE_RATE = 10_000;
@@ -136,6 +144,35 @@ class GalaDex implements Dex {
       }))
       .filter(pool => pool.fee === 1); // different value in the API
   }
+
+  async fetchBalances(): Promise<BalanceResponse[]> {
+    const url =
+      "https://dex-backend-prod1.defi.gala.com/user/assets" +
+      `?address=${this.crypto.getWallet()}&page=1&limit=20`;
+    const response = await fetch(url);
+    const respJson = (await response.json()) as {
+      status: number;
+      message: string;
+      error: boolean;
+      data: {
+        token: {
+          image: string;
+          name: string;
+          decimals: string;
+          verify: boolean;
+          symbol: string;
+          quantity: string;
+        }[];
+        count: number;
+      };
+    };
+
+    return respJson.data.token.map(token => ({
+      token: token.symbol,
+      amount: parseFloat(token.quantity),
+      decimal: parseInt(token.decimals),
+    }));
+  }
 }
 
 class TestDex implements Dex {
@@ -167,6 +204,10 @@ class TestDex implements Dex {
   }
 
   async fetchPools(): Promise<PoolResponse[]> {
+    return [];
+  }
+
+  async fetchBalances(): Promise<BalanceResponse[]> {
     return [];
   }
 }
