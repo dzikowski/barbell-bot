@@ -68,43 +68,51 @@ export class TradingService {
       throw new Error(`${gala}/${usdt} price not found`);
     }
 
-    const balanceInfos: BalanceInfo[] = [gala, ...otherTokens]
-      .map(token => {
-        const balance = balances.find(b => b.token === token);
-        const price = prices.find(p => p.tokenIn === token);
-
-        if (price === undefined) {
-          return undefined;
-        }
-
-        return makeBalanceInfo(balance, price, galaUsdtPrice.price);
-      })
-      .filter(b => b !== undefined);
-
-    const totalValueGala = balanceInfos.reduce(
-      (acc, b) => acc + b.value[gala],
-      0,
-    );
-    const totalValueUsdt = balanceInfos.reduce(
-      (acc, b) => acc + b.value[usdt],
-      0,
+    const balanceInfos: BalanceInfo[] = buildBalanceInfos(
+      balances,
+      prices,
+      galaUsdtPrice.price,
     );
 
     balanceInfos.forEach(b => {
-      b.percentage = (b.value[gala] / totalValueGala) * 100;
-
       const message =
         `${b.token}:\t${b.amount.toFixed(8)}\t(${b.value[gala].toFixed(2)} ${gala}, ` +
         `${b.value[usdt].toFixed(2)} ${usdt}, ${b.percentage.toFixed(2)}%)`;
       log(message);
     });
 
-    const totalValueMessage = `Total value: ${totalValueGala.toFixed(2)} ${gala}, ${totalValueUsdt.toFixed(2)} ${usdt}`;
-    log(totalValueMessage);
-
     log("Saving prices to database...");
     await this.db.savePrices(prices);
   }
+}
+
+function buildBalanceInfos(
+  balances: BalanceResponse[],
+  prices: Price[],
+  galaUsdtPrice: number,
+): BalanceInfo[] {
+  const balanceInfos: BalanceInfo[] = [gala, ...otherTokens]
+    .map(token => {
+      const balance = balances.find(b => b.token === token);
+      const price = prices.find(p => p.tokenIn === token);
+
+      if (price === undefined) {
+        return undefined;
+      }
+
+      return makeBalanceInfo(balance, price, galaUsdtPrice);
+    })
+    .filter(b => b !== undefined);
+
+  const totalValueGala = balanceInfos.reduce(
+    (acc, b) => acc + b.value[gala],
+    0,
+  );
+
+  balanceInfos.forEach(b => {
+    b.percentage = (b.value[gala] / totalValueGala) * 100;
+  });
+  return balanceInfos;
 }
 
 export function makePrice(
@@ -142,7 +150,7 @@ function makeBalanceInfo(
 ): BalanceInfo {
   const galaPrice = price.tokenIn === gala ? 1 : price.price;
   const usdtPrice =
-    price.tokenOut === usdt ? price.price : price.price / galaUsdtPrice;
+    price.tokenOut === usdt ? price.price : price.price * galaUsdtPrice;
   return {
     token: price.tokenIn,
     amount: balance?.amount ?? 0,

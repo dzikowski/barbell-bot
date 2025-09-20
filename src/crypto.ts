@@ -27,7 +27,9 @@ class CryptoFromPath implements Crypto {
     try {
       this.privateKey = (await fs.readFile(this.privateKeyPath, "utf8")).trim();
       const publicKey = signatures.getPublicKey(this.privateKey);
-      const ethAddress = signatures.getEthAddress(publicKey);
+      const ethAddress = signatures.getEthAddress(
+        signatures.getNonCompactHexPublicKey(publicKey),
+      );
       this.wallet = `eth|${ethAddress}`;
     } catch (error) {
       throw loggedError(
