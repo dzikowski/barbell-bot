@@ -29,8 +29,8 @@ export class TradingService {
         ]);
 
         const message = 
-          `Sell: ${amountIn} ${tokenIn} to get ${p1.amountOut} ${tokenOut} (fee: ${p1.fee / 10000}%)
-           Buy:  ${amountIn} ${tokenIn} to get ${p2.amountIn} ${tokenOut} (fee: ${p2.fee / 10000}%)`;
+          `Sell: ${amountIn} ${tokenIn} to get ${p1.amountOut} ${tokenOut} (fee: ${p1.fee / 10000}%)\n`
+          `Buy:  ${amountIn} ${tokenIn} to get ${p2.amountIn} ${tokenOut} (fee: ${p2.fee / 10000}%)`;
 
         log(message);
       }),

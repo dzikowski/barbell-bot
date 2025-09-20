@@ -1,16 +1,22 @@
 export function log(message: string, char: string = "·"): void {
   const timestamp = new Date().toISOString();
 
-  // eslint-disable-next-line no-console
-  console.log(`${timestamp} ${char} ${message}`);
+  message.split("\n").forEach(line => {
+    // eslint-disable-next-line no-console
+    console.log(`${timestamp} ${char} ${line}`);
+  });
 }
 
 export function logWarning(message: string): void {
-  log(`WARNING: ${message}`, "!");
+  message.split("\n").forEach(line => {
+    log(`WARNING: ${line}`, "!");
+  });
 }
 
 export function logError(message: string): void {
-  log(`ERROR: ${message}`, "✖");
+  message.split("\n").forEach(line => {
+    log(`ERROR: ${line}`, "✖");
+  });
 }
 
 export function loggedError(message: string): Error {
