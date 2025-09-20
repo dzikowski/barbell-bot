@@ -28,9 +28,12 @@ export class TradingService {
           this.dex.fetchPrice(tokenOut, undefined, tokenIn, amountIn),
         ]);
 
-        const message = 
-          `Sell: ${amountIn} ${tokenIn} to get ${p1.amountOut} ${tokenOut} (fee: ${p1.fee / 10000}%)\n`
-          `Buy:  ${amountIn} ${tokenIn} to get ${p2.amountIn} ${tokenOut} (fee: ${p2.fee / 10000}%)`;
+        const spread = (p2.amountIn - p1.amountOut) / p1.amountOut;
+
+        const message =
+          `Sell:   ${amountIn} ${tokenIn} to get ${p1.amountOut} ${tokenOut} (fee: ${p1.fee / 10000}%)\n` +
+          `Buy:    ${amountIn} ${tokenIn} to get ${p2.amountIn} ${tokenOut} (fee: ${p2.fee / 10000}%)\n` +
+          `Spread: ${spread.toFixed(2)}%`;
 
         log(message);
       }),
