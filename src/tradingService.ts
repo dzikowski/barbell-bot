@@ -33,7 +33,8 @@ export class TradingService {
   async fetchPrices(): Promise<void> {
     const date = new Date();
 
-    log("Fetching data from dex...");
+    const wallet = this.crypto.getWallet();
+    log(`Fetching data from dex for ${wallet}...`);
     const [pools, balances] = (await Promise.all([
       this.dex.fetchPools(),
       this.dex.fetchBalances(),
