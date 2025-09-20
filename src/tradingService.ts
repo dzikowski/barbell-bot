@@ -2,6 +2,7 @@ import { Dex } from "./dex";
 import { Db } from "./db";
 import { Crypto } from "./crypto";
 import { log } from "./log";
+import { Price } from "./types";
 
 const pools: [string, string, number][] = [
   ["GALA", "GUSDT", 100],
@@ -20,6 +21,9 @@ export class TradingService {
   ) {}
 
   async fetchPrices(): Promise<void> {
+    const date = new Date();
+    const prices: Price[] = [];
+
     log("Fetching prices...");
     await Promise.all(
       pools.map(async ([tokenIn, tokenOut, amountIn]) => {
@@ -36,7 +40,16 @@ export class TradingService {
           `(fee: ${p2.fee / 10000}%, ${spread.toFixed(4)}% spread)`;
 
         log(message);
+
+        // Collect prices for database storage
+        prices.push({ ...p1, date, tokenIn, tokenOut });
+        prices.push({ ...p2, date, tokenIn: tokenOut, tokenOut: tokenIn });
       }),
     );
+
+    log(`Prices fetched in ${new Date().getTime() - date.getTime()}ms`);
+
+    log("Saving prices to database...");
+    await this.db.savePrices(prices);
   }
 }

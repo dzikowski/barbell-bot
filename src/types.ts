@@ -5,7 +5,6 @@ interface Price {
   tokenOut: string;
   amountOut: number;
   fee: number;
-  amountInReversed: number;
 }
 
 export type { Price };

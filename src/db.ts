@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
-import { loggedError } from "./log";
+import { log, loggedError } from "./log";
+import { Price } from "./types";
 
 export interface Db {
   connect(): Promise<void>;
   disconnect(): Promise<void>;
+  savePrices(prices: Price[]): Promise<void>;
 }
 
 class PrismaDb implements Db {
@@ -27,6 +29,23 @@ class PrismaDb implements Db {
       this.prisma = undefined;
     }
   }
+
+  async savePrices(prices: Price[]): Promise<void> {
+    if (this.prisma === undefined) {
+      throw loggedError("Prisma client not connected");
+    }
+
+    await this.prisma.price.createMany({
+      data: prices.map(price => ({
+        date: price.date,
+        tokenIn: price.tokenIn,
+        amountIn: price.amountIn,
+        tokenOut: price.tokenOut,
+        amountOut: price.amountOut,
+        fee: price.fee,
+      })),
+    });
+  }
 }
 
 // kept intentionally, even if it is used only for testing
@@ -37,6 +56,11 @@ class InMemoryDb implements Db {
 
   async disconnect(): Promise<void> {
     return;
+  }
+
+  async savePrices(prices: Price[]): Promise<void> {
+    // In-memory implementation - just log for testing
+    log(`InMemoryDb: Would save ${prices.length} prices`);
   }
 }
 
