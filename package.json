@@ -27,6 +27,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "@gala-chain/api": "2.4.3",
+    "@gala-chain/gswap-sdk": "0.0.7",
     "@prisma/client": "^5.7.1"
   },
   "devDependencies": {

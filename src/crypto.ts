@@ -1,17 +1,18 @@
 import { ChainCallDTO, signatures } from "@gala-chain/api";
+import { PrivateKeySigner } from "@gala-chain/gswap-sdk";
 import { log, loggedError } from "./log";
 import { promises as fs } from "fs";
 
 export interface Crypto {
   ensurePrivateKey(): Promise<void>;
-  sign<T extends ChainCallDTO>(dto: T): T;
   getWallet(): string;
+  getSigner(): PrivateKeySigner;
 }
 
 class CryptoFromPath implements Crypto {
   private readonly privateKeyPath: string;
-  private privateKey: string | undefined;
   private wallet: string | undefined;
+  private signer: PrivateKeySigner | undefined;
 
   constructor(path: string | undefined) {
     if (path === undefined || path === "") {
@@ -19,14 +20,17 @@ class CryptoFromPath implements Crypto {
     }
 
     this.privateKeyPath = path;
-    this.privateKey = undefined;
     this.wallet = undefined;
   }
 
   async ensurePrivateKey(): Promise<void> {
     try {
-      this.privateKey = (await fs.readFile(this.privateKeyPath, "utf8")).trim();
-      const publicKey = signatures.getPublicKey(this.privateKey);
+      const privateKey = (
+        await fs.readFile(this.privateKeyPath, "utf8")
+      ).trim();
+      this.signer = new PrivateKeySigner(privateKey);
+
+      const publicKey = signatures.getPublicKey(privateKey);
       const ethAddress = signatures.getEthAddress(publicKey);
       this.wallet = `eth|${ethAddress}`;
     } catch (error) {
@@ -38,15 +42,11 @@ class CryptoFromPath implements Crypto {
     log(`Wallet: ${this.wallet}\n`);
   }
 
-  sign<T extends ChainCallDTO>(dto: T): T {
-    return dto.signed(this.getPrivateKey());
-  }
-
-  private getPrivateKey(): string {
-    if (this.privateKey === undefined) {
+  public getSigner(): PrivateKeySigner {
+    if (this.signer === undefined) {
       throw loggedError("Private key is not loaded");
     }
-    return this.privateKey;
+    return this.signer;
   }
 
   getWallet(): string {
@@ -76,6 +76,10 @@ class TestCrypto implements Crypto {
 
   async ensurePrivateKey(): Promise<void> {
     return;
+  }
+
+  public getSigner(): PrivateKeySigner {
+    return new PrivateKeySigner(this.privateKey);
   }
 
   sign<T extends ChainCallDTO>(dto: T): T {

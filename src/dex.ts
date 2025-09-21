@@ -1,3 +1,4 @@
+import { GalaChainTokenClassKey, GSwap } from "@gala-chain/gswap-sdk";
 import { Crypto } from "./crypto";
 import { log, loggedError } from "./log";
 import { Price } from "./types";
@@ -50,7 +51,11 @@ export interface Dex {
 const SUPPORTED_FEE_RATE = 10_000;
 
 class GalaDex implements Dex {
-  constructor(private readonly crypto: Crypto) {}
+  private readonly gswap: GSwap;
+
+  constructor(private readonly crypto: Crypto) {
+    this.gswap = new GSwap({ signer: this.crypto.getSigner() });
+  }
 
   async fetchSwapPrice(
     tokenIn: string,
@@ -194,9 +199,26 @@ class GalaDex implements Dex {
     tokenOut: string,
     amountOut: number | undefined,
   ): Promise<void> {
-    log(
-      `Placehold for swapping: ${JSON.stringify({ tokenIn, amountIn, tokenOut, amountOut })}`,
+    const currency = { category: "Unit", type: "none", additionalKey: "none" };
+    const tokenInObj: GalaChainTokenClassKey = { collection: tokenIn, ...currency };
+    const tokenOutObj: GalaChainTokenClassKey = { collection: tokenOut, ...currency };
+    const amount =
+      amountIn === undefined
+        ? { exactOut: amountOut ?? 0 }
+        : { exactIn: amountIn };
+    const fee = SUPPORTED_FEE_RATE;
+    const wallet = this.crypto.getWallet();
+
+    log(`    swapping: ${tokenIn}, ${tokenOut}, ${JSON.stringify(amount)}, ${fee}, ${wallet}`);
+
+    const response = await this.gswap.swaps.swap(
+      tokenInObj,
+      tokenOutObj,
+      fee,
+      amount,
+      wallet,
     );
+    log(`    response: ${JSON.stringify(response)}`);
   }
 }
 
