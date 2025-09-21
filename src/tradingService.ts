@@ -44,7 +44,7 @@ export class TradingService {
       usdt,
       undefined,
     );
-    log(pp(gala, usdt, galaUsdt.price));
+    log(`\n${  pp(gala, usdt, galaUsdt.price)  }\n`);
 
     const otherPrices = await Promise.all(
       otherTokens.map(async t => {
@@ -55,10 +55,11 @@ export class TradingService {
           tradeGalaAmount,
         );
         const priceUsdt = p.price * galaUsdt.price;
-        log(`${pp(t, gala, p.price)  }\t${pp(t, usdt, priceUsdt)}`);
+        log(`${pp(t, gala, p.price)} = ${pnum(priceUsdt)} ${usdt}`);
         return p;
       }),
     );
+    log("\n");
 
     const prices: Price[] = [galaUsdt, ...otherPrices];
 
@@ -136,10 +137,10 @@ function makeBalanceInfo(
 function pp(t1: string, t2: string, p: number) {
   const t1s = t1.length > 4 ? t1 : `${t1} `;
   const t2s = t2.length > 4 ? t2 : `${t2} `;
-  const pfs = fill(p.toFixed(8), 16);
+  const pfs = pnum(p);
   return `1 ${t1s} = ${pfs} ${t2s}`;
 }
 
-function fill(s: string, n: number) {
-  return s.padStart(n, " ");
+function pnum(n: number) {
+  return n.toFixed(8).padStart(16, " ");
 }
