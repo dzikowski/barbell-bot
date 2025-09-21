@@ -218,7 +218,7 @@ class GalaDex implements Dex {
       amount,
       wallet,
     );
-    log(`    response: ${JSON.stringify(response)}`);
+    log(`    uniqueId: ${response.transactionId}`);
   }
 }
 

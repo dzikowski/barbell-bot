@@ -227,13 +227,13 @@ export class TradingService {
       if (balance.token !== gala) {
         if (
           minOther === undefined ||
-          balance.value[gala] < minOther.value[gala]
+          balance.percentageGala < minOther.percentageGala
         ) {
           minOther = balance;
         }
         if (
           maxOther === undefined ||
-          balance.value[gala] > maxOther.value[gala]
+          balance.percentageGala > maxOther.percentageGala
         ) {
           maxOther = balance;
         }
