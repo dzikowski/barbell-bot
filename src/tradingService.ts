@@ -44,7 +44,7 @@ export class TradingService {
       usdt,
       undefined,
     );
-    log(`GALA/GUSDT price: ${galaUsdt.price.toFixed(8)}`);
+    log(pp(gala, usdt, galaUsdt.price));
 
     const otherPrices = await Promise.all(
       otherTokens.map(async t => {
@@ -55,9 +55,7 @@ export class TradingService {
           tradeGalaAmount,
         );
         const priceUsdt = p.price * galaUsdt.price;
-        log(
-          `${p.tokenIn}/${gala} price: ${p.price.toFixed(8)} ($${priceUsdt.toFixed(4)})`,
-        );
+        log(`${pp(t, gala, p.price)  }\t${pp(t, usdt, priceUsdt)}`);
         return p;
       }),
     );
@@ -133,4 +131,15 @@ function makeBalanceInfo(
     },
     percentage: 0,
   };
+}
+
+function pp(t1: string, t2: string, p: number) {
+  const t1s = t1.length > 4 ? t1 : `${t1} `;
+  const t2s = t2.length > 4 ? t2 : `${t2} `;
+  const pfs = fill(p.toFixed(8), 16);
+  return `1 ${t1s} = ${pfs} ${t2s}`;
+}
+
+function fill(s: string, n: number) {
+  return s.padStart(n, " ");
 }
