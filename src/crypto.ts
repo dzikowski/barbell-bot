@@ -50,6 +50,11 @@ class CryptoFromPath implements Crypto {
   }
 
   getWallet(): string {
+    // override for local run
+    if (process.env.DEV_WALLET) {
+      return process.env.DEV_WALLET;
+    }
+
     if (this.wallet === undefined) {
       throw loggedError("Wallet is not loaded");
     }

@@ -1,7 +1,7 @@
 import { BalanceResponse, Dex } from "./dex";
 import { Db } from "./db";
 import { Crypto } from "./crypto";
-import { log } from "./log";
+import { log, loggedError } from "./log";
 import { Price } from "./types";
 
 const usdt = "GUSDT";
@@ -34,6 +34,7 @@ export class TradingService {
 
   async fetchPrices(): Promise<void> {
     const wallet = this.crypto.getWallet();
+
     log(`Fetching balances from dex for ${wallet}...`);
     const balances = await this.dex.fetchBalances();
 
@@ -44,7 +45,7 @@ export class TradingService {
       usdt,
       undefined,
     );
-    log(`\n${  pp(gala, usdt, galaUsdt.price)  }\n`);
+    log(`\n${pp(gala, usdt, galaUsdt.price)}\n`);
 
     const otherPrices = await Promise.all(
       otherTokens.map(async t => {
@@ -61,7 +62,71 @@ export class TradingService {
     );
     log("\n");
 
+    log("Saving prices to database...");
     const prices: Price[] = [galaUsdt, ...otherPrices];
+    await this.db.savePrices(prices);
+
+    log("Fetching stats...");
+    const stats = await Promise.all(
+      otherTokens.map(async t => {
+        const ps24h = await this.db.fetchPrices24h(t);
+        const count = ps24h.length;
+        const avg = ps24h.reduce((acc, p) => acc + p.price, 0) / count;
+        const std = Math.sqrt(
+          ps24h.reduce((acc, p) => acc + Math.pow(p.price - avg, 2), 0) / count,
+        );
+        const stdPercentage = (std / avg) * 100;
+
+        const lastPrice = ps24h[ps24h.length - 1];
+        if (lastPrice === undefined) {
+          throw loggedError(`Last price is undefined for ${t}`);
+        }
+
+        const lastPercentage = ((lastPrice.price - avg) / avg) * 100;
+        const lastPercentageSign =
+          lastPercentage > 0 ? "more exp" : "cheaper";
+
+        return {
+          token: t,
+          count,
+          avg,
+          lastPrice: lastPrice.price,
+          std,
+          stdPercentage,
+          lastPercentage,
+          lastPercentageSign,
+        };
+      }),
+    );
+
+    log("\n");
+    const labels = [
+      " token",
+      "count",
+      "              avg",
+      "             last",
+      "  std%",
+      "  last%",
+      "    sign",
+    ];
+    const labelsStr = labels.join(" | ");
+    log(labelsStr);
+    log(labelsStr.replace(/./g, "="));
+    stats.forEach(st => {
+      const arr: string[] = [
+        st.token,
+        st.count.toString(),
+        st.avg.toFixed(8),
+        st.lastPrice.toFixed(8),
+        `${st.stdPercentage.toFixed(2)}%`,
+        `${st.lastPercentage.toFixed(2)}%`,
+        st.lastPercentageSign,
+      ];
+      log(
+        arr.map((a, i) => a.padStart(labels[i]?.length ?? 16, " ")).join(" | "),
+      );
+    });
+    log("\n");
 
     const balanceInfos: BalanceInfo[] = buildBalanceInfos(
       balances,
@@ -75,9 +140,6 @@ export class TradingService {
         `(${b.value[gala].toFixed(2)} ${gala}, ${b.value[usdt].toFixed(2)} ${usdt}, ${b.percentage.toFixed(2)}%)`;
       log(message);
     });
-
-    log("Saving prices to database...");
-    await this.db.savePrices(prices);
   }
 }
 
