@@ -11,7 +11,8 @@ const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX"];
 const tradeGalaAmount = 1_000;
 
 const targetPercentageGala = 80;
-const targetPercentageOther = 20 / otherTokens.length;
+const targetPercentageOther = (100 - targetPercentageGala) / otherTokens.length;
+const tolerance = () => 0.1; // 10%
 
 interface BalanceInfo {
   token: string;
@@ -245,8 +246,8 @@ export class TradingService {
     }
 
     const totalValueGala = balances.reduce((acc, b) => acc + b.value[gala], 0);
-    const minThereshold = targetPercentageOther * 0.9;
-    const maxThereshold = targetPercentageOther * 1.1;
+    const minThereshold = targetPercentageOther * (1 - tolerance());
+    const maxThereshold = targetPercentageOther * (1 + tolerance());
     const minStr = `${minOther.token}: ${pperc(minOther.percentageGala)}`;
     const maxStr = `${maxOther.token}: ${pperc(maxOther.percentageGala)}`;
 
