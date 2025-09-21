@@ -259,7 +259,7 @@ export class TradingService {
       log("    done!");
     } else {
       log(`${minStr} is above the threshold: ${pperc(minThereshold)}`);
-      log("  - doing nothing");
+      log(" => doing nothing");
     }
 
     log("");
@@ -273,7 +273,7 @@ export class TradingService {
       log("    done!");
     } else {
       log(`${maxStr} is below the threshold: ${pperc(maxThereshold)}`);
-      log("  - doing nothing");
+      log(" => doing nothing");
     }
 
     log("");
