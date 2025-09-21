@@ -109,11 +109,11 @@ export class TradingService {
 
     const labels = [
       " token",
-      "count",
-      "              avg",
-      "             last",
+      "cnt",
+      " avg (GALA)",
+      " last (GALA)",
       "  std%",
-      "  last%",
+      " last%",
       "    sign",
     ];
     const labelsStr = labels.join(" | ");
@@ -123,8 +123,8 @@ export class TradingService {
       const arr: string[] = [
         st.token,
         st.count.toString(),
-        st.avg.toFixed(8),
-        st.lastPrice.toFixed(8),
+        st.avg.toFixed(2),
+        st.lastPrice.toFixed(2),
         `${st.stdPercentage.toFixed(2)}%`,
         `${st.lastPercentage.toFixed(2)}%`,
         st.lastPercentageSign,
@@ -157,8 +157,8 @@ export class TradingService {
 
     const labels = [
       " token",
-      "           amount",
-      "value (GALA)",
+      "         amount",
+      " value (GALA)",
       "value (USDT)",
       "percentage",
     ];
