@@ -10,6 +10,9 @@ const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX"];
 
 const tradeGalaAmount = 1_000;
 
+const targetPercentageGala = 80;
+const targetPercentageOther = 20 / otherTokens.length;
+
 interface BalanceInfo {
   token: string;
   amount: number;
@@ -22,7 +25,7 @@ interface BalanceInfo {
     [gala]: number;
     [usdt]: number;
   };
-  percentage: number;
+  percentageGala: number;
 }
 
 interface Stats {
@@ -111,9 +114,9 @@ export class TradingService {
       " token",
       "cnt",
       " avg (GALA)",
-      " last (GALA)",
+      "last (GALA)",
       "  std%",
-      " last%",
+      "  last%",
       "    sign",
     ];
     const labelsStr = labels.join(" | ");
@@ -125,8 +128,8 @@ export class TradingService {
         st.count.toString(),
         st.avg.toFixed(2),
         st.lastPrice.toFixed(2),
-        `${st.stdPercentage.toFixed(2)}%`,
-        `${st.lastPercentage.toFixed(2)}%`,
+        pperc(st.stdPercentage),
+        pperc(st.lastPercentage),
         st.lastPercentageSign,
       ];
       log(
@@ -157,10 +160,11 @@ export class TradingService {
 
     const labels = [
       " token",
-      "         amount",
+      "           amount",
       " value (GALA)",
       "value (USDT)",
-      "percentage",
+      "  share",
+      " target",
     ];
     const labelsStr = labels.join(" | ");
     log(labelsStr);
@@ -172,26 +176,29 @@ export class TradingService {
     balanceInfos.forEach(b => {
       totalValueGala += b.value[gala];
       totalValueUsdt += b.value[usdt];
+      const target =
+        b.token === gala ? targetPercentageGala : targetPercentageOther;
       const arr: string[] = [
         b.token,
         b.amount.toFixed(8).toString(),
         b.value[gala].toFixed(2).toString(),
         b.value[usdt].toFixed(2).toString(),
-        `${b.percentage.toFixed(2).toString()}%`,
+        pperc(b.percentageGala),
+        pperc(target),
       ];
       log(
         arr.map((a, i) => a.padStart(labels[i]?.length ?? 16, " ")).join(" | "),
       );
     });
 
-    log(labelsStr.replace(/./g, "-"));
+    log(labelsStr.replace(/[^|]/g, "-"));
 
     const totalArr: string[] = [
       "",
       "Total:",
       totalValueGala.toFixed(2).toString(),
       totalValueUsdt.toFixed(2).toString(),
-      "100.00%",
+      pperc(100),
     ];
     log(
       totalArr
@@ -204,8 +211,72 @@ export class TradingService {
     return balanceInfos;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async rebalance(balances: BalanceInfo[], stats: Stats[]): Promise<void> {
-    log("Rebalancing...");
+    log("Rebalancing:\n");
+
+    const galaBalance = balances.find(b => b.token === gala);
+    if (galaBalance === undefined) {
+      throw loggedError("GALA balance not found in provided balances");
+    }
+
+    let minOther = undefined;
+    let maxOther = undefined;
+
+    for (const balance of balances) {
+      if (balance.token !== gala) {
+        if (
+          minOther === undefined ||
+          balance.value[gala] < minOther.value[gala]
+        ) {
+          minOther = balance;
+        }
+        if (
+          maxOther === undefined ||
+          balance.value[gala] > maxOther.value[gala]
+        ) {
+          maxOther = balance;
+        }
+      }
+    }
+
+    if (maxOther === undefined || minOther === undefined) {
+      throw loggedError("No other balance found in provided balances");
+    }
+
+    const totalValueGala = balances.reduce((acc, b) => acc + b.value[gala], 0);
+    const minThereshold = targetPercentageOther * 0.9;
+    const maxThereshold = targetPercentageOther * 1.1;
+    const minStr = `${minOther.token}: ${pperc(minOther.percentageGala)}`;
+    const maxStr = `${maxOther.token}: ${pperc(maxOther.percentageGala)}`;
+
+    if (minOther.percentageGala < minThereshold) {
+      const percToSpend = targetPercentageOther - minOther.percentageGala;
+      const amountToSpend = Math.round((percToSpend / 100) * totalValueGala);
+      log(`${minStr} is below the threshold: ${pperc(minThereshold)}`);
+      log(` => BUYING ${minOther.token} for ${amountToSpend} ${gala}`);
+      await this.dex.swap(gala, amountToSpend, minOther.token, undefined);
+      log("    done!");
+    } else {
+      log(`${minStr} is above the threshold: ${pperc(minThereshold)}`);
+      log("  - doing nothing");
+    }
+
+    log("");
+
+    if (maxOther.percentageGala > maxThereshold) {
+      const percToSell = maxOther.percentageGala - targetPercentageOther;
+      const amountToSell = Math.round((percToSell / 100) * totalValueGala);
+      log(`${maxStr} is above the threshold: ${pperc(maxThereshold)}`);
+      log(` => SELLING ${maxOther.token} for ${amountToSell} ${gala}`);
+      await this.dex.swap(maxOther.token, undefined, gala, amountToSell);
+      log("    done!");
+    } else {
+      log(`${maxStr} is below the threshold: ${pperc(maxThereshold)}`);
+      log("  - doing nothing");
+    }
+
+    log("");
   }
 }
 
@@ -233,7 +304,7 @@ function buildBalanceInfos(
   );
 
   balanceInfos.forEach(b => {
-    b.percentage = (b.value[gala] / totalValueGala) * 100;
+    b.percentageGala = (b.value[gala] / totalValueGala) * 100;
   });
   return balanceInfos;
 }
@@ -258,7 +329,7 @@ function makeBalanceInfo(
       [gala]: (balance?.amount ?? 0) * galaPrice,
       [usdt]: (balance?.amount ?? 0) * usdtPrice,
     },
-    percentage: 0,
+    percentageGala: 0,
   };
 }
 
@@ -271,4 +342,8 @@ function pp(t1: string, t2: string, p: number) {
 
 function pnum(n: number) {
   return n.toFixed(8).padStart(16, " ");
+}
+
+function pperc(p: number) {
+  return `${p.toFixed(2).toString()}%`;
 }

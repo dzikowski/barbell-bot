@@ -1,5 +1,5 @@
 import { Crypto } from "./crypto";
-import { loggedError } from "./log";
+import { log, loggedError } from "./log";
 import { Price } from "./types";
 
 // Native fetch is available in Node.js 18+ and TypeScript ES2022+
@@ -38,6 +38,13 @@ export interface Dex {
   fetchPools(): Promise<PoolResponse[]>;
 
   fetchBalances(): Promise<BalanceResponse[]>;
+
+  swap(
+    tokenIn: string,
+    amountIn: number | undefined,
+    tokenOut: string,
+    amountOut: number | undefined,
+  ): Promise<void>;
 }
 
 const SUPPORTED_FEE_RATE = 10_000;
@@ -180,6 +187,17 @@ class GalaDex implements Dex {
       decimal: parseInt(token.decimals),
     }));
   }
+
+  async swap(
+    tokenIn: string,
+    amountIn: number | undefined,
+    tokenOut: string,
+    amountOut: number | undefined,
+  ): Promise<void> {
+    log(
+      `Placehold for swapping: ${JSON.stringify({ tokenIn, amountIn, tokenOut, amountOut })}`,
+    );
+  }
 }
 
 class TestDex implements Dex {
@@ -218,6 +236,17 @@ class TestDex implements Dex {
 
   async fetchBalances(): Promise<BalanceResponse[]> {
     return [];
+  }
+
+  async swap(
+    tokenIn: string,
+    amountIn: number | undefined,
+    tokenOut: string,
+    amountOut: number | undefined,
+  ): Promise<void> {
+    log(
+      `Placehold for swapping: ${JSON.stringify({ tokenIn, amountIn, tokenOut, amountOut })}`,
+    );
   }
 }
 
