@@ -25,6 +25,17 @@ interface BalanceInfo {
   percentage: number;
 }
 
+interface Stats {
+  token: string;
+  count: number;
+  avg: number;
+  lastPrice: number;
+  std: number;
+  stdPercentage: number;
+  lastPercentage: number;
+  lastPercentageSign: string;
+}
+
 export class TradingService {
   constructor(
     private readonly crypto: Crypto,
@@ -32,13 +43,8 @@ export class TradingService {
     private readonly dex: Dex,
   ) {}
 
-  async fetchPrices(): Promise<void> {
-    const wallet = this.crypto.getWallet();
-
-    log(`Fetching balances from dex for ${wallet}...`);
-    const balances = await this.dex.fetchBalances();
-
-    log("Fetching prices...");
+  async updatePrices(): Promise<Price[]> {
+    log("Prices:");
     const galaUsdt = await this.dex.fetchSwapPrice(
       gala,
       tradeGalaAmount,
@@ -60,14 +66,17 @@ export class TradingService {
         return p;
       }),
     );
-    log("\n");
+    log("");
 
-    log("Saving prices to database...");
     const prices: Price[] = [galaUsdt, ...otherPrices];
     await this.db.savePrices(prices);
 
-    log("Fetching stats...");
-    const stats = await Promise.all(
+    return prices;
+  }
+
+  async calculateStats(): Promise<Stats[]> {
+    log("Stats:\n");
+    const stats: Stats[] = await Promise.all(
       otherTokens.map(async t => {
         const ps24h = await this.db.fetchPrices24h(t);
         const count = ps24h.length;
@@ -83,8 +92,7 @@ export class TradingService {
         }
 
         const lastPercentage = ((lastPrice.price - avg) / avg) * 100;
-        const lastPercentageSign =
-          lastPercentage > 0 ? "more exp" : "cheaper";
+        const lastPercentageSign = lastPercentage > 0 ? "more exp" : "cheaper";
 
         return {
           token: t,
@@ -99,7 +107,6 @@ export class TradingService {
       }),
     );
 
-    log("\n");
     const labels = [
       " token",
       "count",
@@ -126,20 +133,79 @@ export class TradingService {
         arr.map((a, i) => a.padStart(labels[i]?.length ?? 16, " ")).join(" | "),
       );
     });
-    log("\n");
+    log("");
+
+    return stats;
+  }
+
+  async fetchBalances(prices: Price[]): Promise<BalanceInfo[]> {
+    log("Balances:\n");
+    const balances = await this.dex.fetchBalances();
+
+    const galaUsdtPrice = prices.find(
+      p => p.tokenIn === gala && p.tokenOut === usdt,
+    )?.price;
+    if (galaUsdtPrice === undefined) {
+      throw loggedError("GALA/USDT price not found in provided prices");
+    }
 
     const balanceInfos: BalanceInfo[] = buildBalanceInfos(
       balances,
       prices,
-      galaUsdt.price,
+      galaUsdtPrice,
     );
 
+    const labels = [
+      " token",
+      "           amount",
+      "value (GALA)",
+      "value (USDT)",
+      "percentage",
+    ];
+    const labelsStr = labels.join(" | ");
+    log(labelsStr);
+    log(labelsStr.replace(/./g, "="));
+
+    let totalValueGala = 0;
+    let totalValueUsdt = 0;
+
     balanceInfos.forEach(b => {
-      const message =
-        `${b.token}:\t${b.amount.toFixed(8)}\t$${b.value[usdt].toFixed(2)}\t` +
-        `(${b.value[gala].toFixed(2)} ${gala}, ${b.value[usdt].toFixed(2)} ${usdt}, ${b.percentage.toFixed(2)}%)`;
-      log(message);
+      totalValueGala += b.value[gala];
+      totalValueUsdt += b.value[usdt];
+      const arr: string[] = [
+        b.token,
+        b.amount.toFixed(8).toString(),
+        b.value[gala].toFixed(2).toString(),
+        b.value[usdt].toFixed(2).toString(),
+        `${b.percentage.toFixed(2).toString()}%`,
+      ];
+      log(
+        arr.map((a, i) => a.padStart(labels[i]?.length ?? 16, " ")).join(" | "),
+      );
     });
+
+    log(labelsStr.replace(/./g, "-"));
+
+    const totalArr: string[] = [
+      "",
+      "Total:",
+      totalValueGala.toFixed(2).toString(),
+      totalValueUsdt.toFixed(2).toString(),
+      "100.00%",
+    ];
+    log(
+      totalArr
+        .map((a, i) => a.padStart(labels[i]?.length ?? 16, " "))
+        .join(" | "),
+    );
+
+    log("");
+
+    return balanceInfos;
+  }
+
+  async rebalance(balances: BalanceInfo[], stats: Stats[]): Promise<void> {
+    log("Rebalancing...");
   }
 }
 

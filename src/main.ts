@@ -16,7 +16,10 @@ async function main(): Promise<void> {
     const service = new TradingService(crypto, db, galaDex(crypto));
 
     // Bot logic
-    await service.fetchPrices();
+    const prices = await service.updatePrices();
+    const stats = await service.calculateStats();
+    const balances = await service.fetchBalances(prices);
+    await service.rebalance(balances, stats);
   } finally {
     await db?.disconnect();
   }

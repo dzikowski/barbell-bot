@@ -35,7 +35,7 @@ class CryptoFromPath implements Crypto {
       );
     }
 
-    log("Private key succcessfuly loaded from the provided path");
+    log(`Wallet: ${this.wallet}\n`);
   }
 
   sign<T extends ChainCallDTO>(dto: T): T {
