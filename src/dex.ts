@@ -1,5 +1,6 @@
 import { Crypto } from "./crypto";
 import { loggedError } from "./log";
+import { Price } from "./types";
 
 // Native fetch is available in Node.js 18+ and TypeScript ES2022+
 declare const fetch: typeof globalThis.fetch;
@@ -32,7 +33,7 @@ export interface Dex {
     amountIn: number | undefined,
     tokenOut: string,
     amountOut: number | undefined,
-  ): Promise<PriceResponse>;
+  ): Promise<Price>;
 
   fetchPools(): Promise<PoolResponse[]>;
 
@@ -49,7 +50,7 @@ class GalaDex implements Dex {
     amountIn: number | undefined,
     tokenOut: string,
     amountOut: number | undefined,
-  ): Promise<PriceResponse> {
+  ): Promise<Price> {
     if (amountIn === undefined && amountOut === undefined) {
       throw loggedError("Either amountIn or amountOut must be provided");
     }
@@ -99,12 +100,18 @@ class GalaDex implements Dex {
         );
       }
 
-      const price = {
-        amountIn: parseFloat(String(respJson.data.amountIn)),
-        amountOut: parseFloat(String(respJson.data.amountOut)),
-        fee: parseFloat(String(respJson.data.fee)),
-        currentSqrtPrice: parseFloat(String(respJson.data.currentSqrtPrice)),
-        newSqrtPrice: parseFloat(String(respJson.data.newSqrtPrice)),
+      const amountInResp = parseFloat(String(respJson.data.amountIn));
+      const amountOutResp = parseFloat(String(respJson.data.amountOut));
+      const feeResp = parseFloat(String(respJson.data.fee));
+
+      const price: Price = {
+        date: new Date(),
+        tokenIn,
+        tokenOut,
+        amountIn: amountInResp,
+        amountOut: amountOutResp,
+        price: amountOutResp / amountInResp,
+        fee: feeResp,
       };
 
       return price;
@@ -189,17 +196,19 @@ class TestDex implements Dex {
     tokenIn: string,
     amountIn: number,
     tokenOut: string,
-  ): Promise<PriceResponse> {
+  ): Promise<Price> {
     const price = this.prices[tokenIn]?.[tokenOut];
     if (price === undefined) {
       throw new Error(`Price for ${tokenIn}/${tokenOut} not found`);
     }
     return {
+      date: new Date(),
+      tokenIn,
+      tokenOut,
       amountIn,
       amountOut: price * amountIn,
+      price,
       fee: SUPPORTED_FEE_RATE,
-      currentSqrtPrice: Math.sqrt(price),
-      newSqrtPrice: Math.sqrt(price * 0.97),
     };
   }
 

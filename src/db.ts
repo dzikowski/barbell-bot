@@ -39,9 +39,9 @@ class PrismaDb implements Db {
       data: prices.map(price => ({
         date: price.date,
         tokenIn: price.tokenIn,
-        amountIn: 1,
+        amountIn: price.amountIn,
         tokenOut: price.tokenOut,
-        amountOut: price.price,
+        amountOut: price.amountOut,
         fee: price.fee,
       })),
     });
