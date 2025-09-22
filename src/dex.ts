@@ -1,4 +1,4 @@
-import { GalaChainTokenClassKey, GSwap } from "@gala-chain/gswap-sdk";
+import { GSwap, GalaChainTokenClassKey } from "@gala-chain/gswap-sdk";
 import { Crypto } from "./crypto";
 import { log, loggedError } from "./log";
 import { Price } from "./types";
@@ -28,6 +28,15 @@ export interface BalanceResponse {
   decimal: number;
 }
 
+export interface SwapResponse {
+  date: Date;
+  uniqueId: string;
+  tokenIn: string;
+  tokenOut: string;
+  amountIn: number | undefined;
+  amountOut: number | undefined;
+}
+
 export interface Dex {
   fetchSwapPrice(
     tokenIn: string,
@@ -45,7 +54,7 @@ export interface Dex {
     amountIn: number | undefined,
     tokenOut: string,
     amountOut: number | undefined,
-  ): Promise<void>;
+  ): Promise<SwapResponse>;
 }
 
 const SUPPORTED_FEE_RATE = 10_000;
@@ -198,10 +207,16 @@ class GalaDex implements Dex {
     amountIn: number | undefined,
     tokenOut: string,
     amountOut: number | undefined,
-  ): Promise<void> {
+  ): Promise<SwapResponse> {
     const currency = { category: "Unit", type: "none", additionalKey: "none" };
-    const tokenInObj: GalaChainTokenClassKey = { collection: tokenIn, ...currency };
-    const tokenOutObj: GalaChainTokenClassKey = { collection: tokenOut, ...currency };
+    const tokenInObj: GalaChainTokenClassKey = {
+      collection: tokenIn,
+      ...currency,
+    };
+    const tokenOutObj: GalaChainTokenClassKey = {
+      collection: tokenOut,
+      ...currency,
+    };
     const amount =
       amountIn === undefined
         ? { exactOut: amountOut ?? 0 }
@@ -209,11 +224,20 @@ class GalaDex implements Dex {
     const fee = SUPPORTED_FEE_RATE;
     const wallet = this.crypto.getWallet();
 
-    log(`    swapping: ${tokenIn}, ${tokenOut}, ${JSON.stringify(amount)}, ${fee}, ${wallet}`);
+    log(
+      `    swapping: ${tokenIn}, ${tokenOut}, ${JSON.stringify(amount)}, ${fee}, ${wallet}`,
+    );
 
     if (process.env.NO_TRADE) {
       log("    skipping swap because NO_TRADE is set");
-      return;
+      return {
+        date: new Date(),
+        uniqueId: `NO_TRADE_${new Date().toISOString()}`,
+        tokenIn,
+        tokenOut,
+        amountIn,
+        amountOut,
+      };
     }
 
     const response = await this.gswap.swaps.swap(
@@ -224,6 +248,14 @@ class GalaDex implements Dex {
       wallet,
     );
     log(`    uniqueId: ${response.transactionId}`);
+    return {
+      date: new Date(),
+      uniqueId: response.transactionId,
+      tokenIn,
+      tokenOut,
+      amountIn,
+      amountOut,
+    };
   }
 }
 
@@ -270,10 +302,18 @@ class TestDex implements Dex {
     amountIn: number | undefined,
     tokenOut: string,
     amountOut: number | undefined,
-  ): Promise<void> {
+  ): Promise<SwapResponse> {
     log(
       `Placehold for swapping: ${JSON.stringify({ tokenIn, amountIn, tokenOut, amountOut })}`,
     );
+    return {
+      date: new Date(),
+      uniqueId: `NO_TRADE_${new Date().toISOString()}`,
+      tokenIn,
+      tokenOut,
+      amountIn,
+      amountOut,
+    };
   }
 }
 

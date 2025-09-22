@@ -1,8 +1,8 @@
-import { BalanceResponse, Dex } from "./dex";
+import { BalanceResponse, Dex, SwapResponse } from "./dex";
 import { Db } from "./db";
 import { Crypto } from "./crypto";
 import { log, loggedError } from "./log";
-import { Price } from "./types";
+import { Price, Trade } from "./types";
 
 const usdt = "GUSDT";
 const gala = "GALA";
@@ -212,8 +212,11 @@ export class TradingService {
     return balanceInfos;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async rebalance(balances: BalanceInfo[], stats: Stats[]): Promise<void> {
+  async rebalance(
+    balances: BalanceInfo[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    stats: Stats[],
+  ): Promise<SwapResponse[]> {
     log("Rebalancing:\n");
 
     const galaBalance = balances.find(b => b.token === gala);
@@ -250,13 +253,15 @@ export class TradingService {
     const maxThereshold = targetPercentageOther * (1 + tolerance());
     const minStr = `${minOther.token}: ${pperc(minOther.percentageGala)}`;
     const maxStr = `${maxOther.token}: ${pperc(maxOther.percentageGala)}`;
+    const trades: SwapResponse[] = [];
 
     if (minOther.percentageGala < minThereshold) {
       const percToSpend = targetPercentageOther - minOther.percentageGala;
-      const amountToSpend = Math.round((percToSpend / 100) * totalValueGala);
+      const toSpend = Math.round((percToSpend / 100) * totalValueGala);
       log(`${minStr} is below the threshold: ${pperc(minThereshold)}`);
-      log(` => BUYING ${minOther.token} for ${amountToSpend} ${gala}`);
-      await this.dex.swap(gala, amountToSpend, minOther.token, undefined);
+      log(` => BUYING ${minOther.token} for ${toSpend} ${gala}`);
+      const t = await this.dex.swap(gala, toSpend, minOther.token, undefined);
+      trades.push(t);
       log("    done!");
     } else {
       log(`${minStr} is above the threshold: ${pperc(minThereshold)}`);
@@ -267,16 +272,68 @@ export class TradingService {
 
     if (maxOther.percentageGala > maxThereshold) {
       const percToSell = maxOther.percentageGala - targetPercentageOther;
-      const amountToSell = Math.round((percToSell / 100) * totalValueGala);
+      const toSell = Math.round((percToSell / 100) * totalValueGala);
       log(`${maxStr} is above the threshold: ${pperc(maxThereshold)}`);
-      log(` => SELLING ${maxOther.token} for ${amountToSell} ${gala}`);
-      await this.dex.swap(maxOther.token, undefined, gala, amountToSell);
+      log(` => SELLING ${maxOther.token} for ${toSell} ${gala}`);
+      const t = await this.dex.swap(maxOther.token, undefined, gala, toSell);
+      trades.push(t);
       log("    done!");
     } else {
       log(`${maxStr} is below the threshold: ${pperc(maxThereshold)}`);
       log(" => doing nothing");
     }
 
+    log("");
+
+    return trades;
+  }
+
+  async saveTrades(
+    oldBalances: BalanceInfo[],
+    newBalances: BalanceInfo[],
+    trades: SwapResponse[],
+  ): Promise<void> {
+    const tradeInfos: Trade[] = trades.map(t => {
+      const balanceInOld = oldBalances.find(b => b.token === t.tokenIn);
+      const balanceOutOld = oldBalances.find(b => b.token === t.tokenOut);
+      const balanceInNew = newBalances.find(b => b.token === t.tokenIn);
+      const balanceOutNew = newBalances.find(b => b.token === t.tokenOut);
+
+      if (
+        balanceInOld === undefined ||
+        balanceOutOld === undefined ||
+        balanceInNew === undefined ||
+        balanceOutNew === undefined
+      ) {
+        throw loggedError("Balance not found in provided balances");
+      }
+
+      const amountIn = balanceInOld.amount - balanceInNew.amount;
+      const amountOut = balanceOutNew.amount - balanceOutOld.amount;
+
+      return {
+        date: t.date,
+        uniqueId: t.uniqueId,
+        tokenIn: t.tokenIn,
+        amountIn,
+        tokenOut: t.tokenOut,
+        amountOut,
+        wasSuccessful: amountIn > 0 && amountOut > 0,
+      };
+    });
+
+    log("Trades made:\n");
+    tradeInfos.forEach(t => {
+      const price =
+        t.tokenOut === gala
+          ? t.amountOut / t.amountIn
+          : t.amountIn / t.amountOut;
+      log(
+        `  ${t.wasSuccessful ? "✅" : "❌"} ` +
+          `${pnum(t.amountIn)} ${t.tokenIn} -> ${pnum(t.amountOut)} ${t.tokenOut} ` +
+          `(price: ${price.toFixed(2).padStart(11, " ")} GALA)`,
+      );
+    });
     log("");
   }
 }
