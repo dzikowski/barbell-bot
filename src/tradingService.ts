@@ -6,11 +6,11 @@ import { Price } from "./types";
 
 const usdt = "GUSDT";
 const gala = "GALA";
-const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX"];
+const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX", "GOSMI"];
 
 const tradeGalaAmount = 1_000;
 
-const targetPercentageGala = 80;
+const targetPercentageGala = 75;
 const targetPercentageOther = (100 - targetPercentageGala) / otherTokens.length;
 const tolerance = () => 0.05; // 5%
 

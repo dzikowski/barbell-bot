@@ -11,7 +11,7 @@
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "npm run format && eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "start:dev": "PRIVATE_KEY_PATH=test-private-key DATABASE_URL=postgresql://postgres:postgres@localhost:5438/barbell_bot ts-node src/main.ts",
+    "start:dev": "NO_TRADE=true PRIVATE_KEY_PATH=test-private-key DATABASE_URL=postgresql://postgres:postgres@localhost:5438/barbell_bot ts-node src/main.ts",
     "db:up": "docker run --name barbell-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=barbell_bot -p 5438:5432 -d postgres:17 && sleep 3 && DATABASE_URL=postgresql://postgres:postgres@localhost:5438/barbell_bot prisma db push",
     "db:down": "docker stop barbell-postgres && docker rm barbell-postgres",
     "prisma:generate": "prisma generate",

@@ -211,6 +211,11 @@ class GalaDex implements Dex {
 
     log(`    swapping: ${tokenIn}, ${tokenOut}, ${JSON.stringify(amount)}, ${fee}, ${wallet}`);
 
+    if (process.env.NO_TRADE) {
+      log("    skipping swap because NO_TRADE is set");
+      return;
+    }
+
     const response = await this.gswap.swaps.swap(
       tokenInObj,
       tokenOutObj,
