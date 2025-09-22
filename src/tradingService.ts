@@ -12,7 +12,7 @@ const tradeGalaAmount = 1_000;
 
 const targetPercentageGala = 80;
 const targetPercentageOther = (100 - targetPercentageGala) / otherTokens.length;
-const tolerance = () => 0.1; // 10%
+const tolerance = () => 0.05; // 5%
 
 interface BalanceInfo {
   token: string;
