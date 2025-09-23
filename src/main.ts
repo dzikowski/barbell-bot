@@ -1,23 +1,21 @@
 import { cryptoFromPath } from "./crypto";
 import { Db, prismaDb } from "./db";
 import { galaDex } from "./dex";
-import { logError } from "./log";
+import { DefaultCtx } from "./ctx";
 import { TradingService } from "./tradingService";
 
-async function main(): Promise<void> {
-  const ctx = {
-    now: () => new Date(),
-  };
+const ctx = new DefaultCtx();
 
+async function main(): Promise<void> {
   let db: Db | undefined;
 
   try {
     // Setting up
-    const crypto = cryptoFromPath(process.env.PRIVATE_KEY_PATH);
+    const crypto = cryptoFromPath(process.env.PRIVATE_KEY_PATH, ctx);
     db = prismaDb(ctx);
     await Promise.all([crypto.ensurePrivateKey(), db.connect()]);
 
-    const service = new TradingService(db, galaDex(crypto, ctx));
+    const service = new TradingService(db, galaDex(crypto, ctx), ctx);
 
     // Bot logic
     const prices = await service.updatePrices();
@@ -36,6 +34,6 @@ async function main(): Promise<void> {
 
 main().catch(e => {
   const msg = e instanceof Error ? e.message : "Unknown error occurred";
-  logError(`Error in main function: ${msg}`);
+  ctx.logError(`Error in main function: ${msg}`);
   process.exit(1);
 });

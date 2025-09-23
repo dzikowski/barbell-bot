@@ -1,6 +1,6 @@
 import { BalanceResponse, Dex, SwapResponse } from "./dex";
 import { Db } from "./db";
-import { log, loggedError } from "./log";
+import { Ctx } from "./ctx";
 import { Price, Trade } from "./types";
 
 const usdt = "GUSDT";
@@ -43,17 +43,18 @@ export class TradingService {
   constructor(
     private readonly db: Db,
     private readonly dex: Dex,
+    private readonly ctx: Ctx,
   ) {}
 
   async updatePrices(): Promise<Price[]> {
-    log("Prices:");
+    this.ctx.log("Prices:");
     const galaUsdt = await this.dex.fetchSwapPrice(
       gala,
       tradeGalaAmount,
       usdt,
       undefined,
     );
-    log(`\n${pp(gala, usdt, galaUsdt.price)}\n`);
+    this.ctx.log(`\n${pp(gala, usdt, galaUsdt.price)}\n`);
 
     const otherPrices = await Promise.all(
       otherTokens.map(async t => {
@@ -64,11 +65,11 @@ export class TradingService {
           tradeGalaAmount,
         );
         const priceUsdt = p.price * galaUsdt.price;
-        log(`${pp(t, gala, p.price)} = ${pnum(priceUsdt)} ${usdt}`);
+        this.ctx.log(`${pp(t, gala, p.price)} = ${pnum(priceUsdt)} ${usdt}`);
         return p;
       }),
     );
-    log("");
+    this.ctx.log("");
 
     const prices: Price[] = [galaUsdt, ...otherPrices];
     await this.db.savePrices(prices);
@@ -77,7 +78,7 @@ export class TradingService {
   }
 
   async calculateStats(): Promise<Stats[]> {
-    log("Stats:\n");
+    this.ctx.log("Stats:\n");
     const stats: Stats[] = await Promise.all(
       otherTokens.map(async t => {
         const ps24h = await this.db.fetchPrices24h(t);
@@ -90,7 +91,7 @@ export class TradingService {
 
         const lastPrice = ps24h[ps24h.length - 1];
         if (lastPrice === undefined) {
-          throw loggedError(`Last price is undefined for ${t}`);
+          throw this.ctx.loggedError(`Last price is undefined for ${t}`);
         }
 
         const lastPercentage = ((lastPrice.price - avg) / avg) * 100;
@@ -119,8 +120,8 @@ export class TradingService {
       "    sign",
     ];
     const labelsStr = labels.join(" | ");
-    log(labelsStr);
-    log(labelsStr.replace(/./g, "="));
+    this.ctx.log(labelsStr);
+    this.ctx.log(labelsStr.replace(/./g, "="));
     stats.forEach(st => {
       const arr: string[] = [
         st.token,
@@ -131,24 +132,26 @@ export class TradingService {
         pperc(st.lastPercentage),
         st.lastPercentageSign,
       ];
-      log(
+      this.ctx.log(
         arr.map((a, i) => a.padStart(labels[i]?.length ?? 16, " ")).join(" | "),
       );
     });
-    log("");
+    this.ctx.log("");
 
     return stats;
   }
 
   async fetchBalances(prices: Price[]): Promise<BalanceInfo[]> {
-    log("Balances:\n");
+    this.ctx.log("Balances:\n");
     const balances = await this.dex.fetchBalances();
 
     const galaUsdtPrice = prices.find(
       p => p.tokenIn === gala && p.tokenOut === usdt,
     )?.price;
     if (galaUsdtPrice === undefined) {
-      throw loggedError("GALA/USDT price not found in provided prices");
+      throw this.ctx.loggedError(
+        "GALA/USDT price not found in provided prices",
+      );
     }
 
     const balanceInfos: BalanceInfo[] = buildBalanceInfos(
@@ -166,8 +169,8 @@ export class TradingService {
       " target",
     ];
     const labelsStr = labels.join(" | ");
-    log(labelsStr);
-    log(labelsStr.replace(/./g, "="));
+    this.ctx.log(labelsStr);
+    this.ctx.log(labelsStr.replace(/./g, "="));
 
     let totalValueGala = 0;
     let totalValueUsdt = 0;
@@ -185,12 +188,12 @@ export class TradingService {
         pperc(b.percentageGala),
         pperc(target),
       ];
-      log(
+      this.ctx.log(
         arr.map((a, i) => a.padStart(labels[i]?.length ?? 16, " ")).join(" | "),
       );
     });
 
-    log(labelsStr.replace(/[^|]/g, "-"));
+    this.ctx.log(labelsStr.replace(/[^|]/g, "-"));
 
     const totalArr: string[] = [
       "",
@@ -199,13 +202,13 @@ export class TradingService {
       totalValueUsdt.toFixed(2).toString(),
       pperc(100),
     ];
-    log(
+    this.ctx.log(
       totalArr
         .map((a, i) => a.padStart(labels[i]?.length ?? 16, " "))
         .join(" | "),
     );
 
-    log("");
+    this.ctx.log("");
 
     return balanceInfos;
   }
@@ -215,11 +218,11 @@ export class TradingService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     stats: Stats[],
   ): Promise<SwapResponse[]> {
-    log("Rebalancing:\n");
+    this.ctx.log("Rebalancing:\n");
 
     const galaBalance = balances.find(b => b.token === gala);
     if (galaBalance === undefined) {
-      throw loggedError("GALA balance not found in provided balances");
+      throw this.ctx.loggedError("GALA balance not found in provided balances");
     }
 
     let minOther = undefined;
@@ -243,7 +246,7 @@ export class TradingService {
     }
 
     if (maxOther === undefined || minOther === undefined) {
-      throw loggedError("No other balance found in provided balances");
+      throw this.ctx.loggedError("No other balance found in provided balances");
     }
 
     const totalValueGala = balances.reduce((acc, b) => acc + b.value[gala], 0);
@@ -256,32 +259,32 @@ export class TradingService {
     if (minOther.percentageGala < minThereshold) {
       const percToSpend = targetPercentageOther - minOther.percentageGala;
       const toSpend = Math.round((percToSpend / 100) * totalValueGala);
-      log(`${minStr} is below the threshold: ${pperc(minThereshold)}`);
-      log(` => BUYING ${minOther.token} for ${toSpend} ${gala}`);
+      this.ctx.log(`${minStr} is below the threshold: ${pperc(minThereshold)}`);
+      this.ctx.log(` => BUYING ${minOther.token} for ${toSpend} ${gala}`);
       const t = await this.dex.swap(gala, toSpend, minOther.token, undefined);
       trades.push(t);
-      log("    done!");
+      this.ctx.log("    done!");
     } else {
-      log(`${minStr} is above the threshold: ${pperc(minThereshold)}`);
-      log(" => doing nothing");
+      this.ctx.log(`${minStr} is above the threshold: ${pperc(minThereshold)}`);
+      this.ctx.log(" => doing nothing");
     }
 
-    log("");
+    this.ctx.log("");
 
     if (maxOther.percentageGala > maxThereshold) {
       const percToSell = maxOther.percentageGala - targetPercentageOther;
       const toSell = Math.round((percToSell / 100) * totalValueGala);
-      log(`${maxStr} is above the threshold: ${pperc(maxThereshold)}`);
-      log(` => SELLING ${maxOther.token} for ${toSell} ${gala}`);
+      this.ctx.log(`${maxStr} is above the threshold: ${pperc(maxThereshold)}`);
+      this.ctx.log(` => SELLING ${maxOther.token} for ${toSell} ${gala}`);
       const t = await this.dex.swap(maxOther.token, undefined, gala, toSell);
       trades.push(t);
-      log("    done!");
+      this.ctx.log("    done!");
     } else {
-      log(`${maxStr} is below the threshold: ${pperc(maxThereshold)}`);
-      log(" => doing nothing");
+      this.ctx.log(`${maxStr} is below the threshold: ${pperc(maxThereshold)}`);
+      this.ctx.log(" => doing nothing");
     }
 
-    log("");
+    this.ctx.log("");
 
     return trades;
   }
@@ -303,7 +306,7 @@ export class TradingService {
         balanceInNew === undefined ||
         balanceOutNew === undefined
       ) {
-        throw loggedError("Balance not found in provided balances");
+        throw this.ctx.loggedError("Balance not found in provided balances");
       }
 
       const amountIn = balanceInOld.amount - balanceInNew.amount;
@@ -320,19 +323,19 @@ export class TradingService {
       };
     });
 
-    log("Trades made:\n");
+    this.ctx.log("Trades made:\n");
     tradeInfos.forEach(t => {
       const price =
         t.tokenOut === gala
           ? t.amountOut / t.amountIn
           : t.amountIn / t.amountOut;
-      log(
+      this.ctx.log(
         `  ${t.wasSuccessful ? "✅" : "❌"} ` +
           `${pnum(t.amountIn)} ${t.tokenIn} -> ${pnum(t.amountOut)} ${t.tokenOut} ` +
           `(price: ${price.toFixed(2).padStart(11, " ")} GALA)`,
       );
     });
-    log("");
+    this.ctx.log("");
   }
 }
 

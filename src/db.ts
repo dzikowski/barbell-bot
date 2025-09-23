@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { logWarning, loggedError } from "./log";
-import { Ctx, Price } from "./types";
+import { Ctx } from "./ctx";
+import { Price } from "./types";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
@@ -22,7 +22,7 @@ class PrismaDb implements Db {
       this.prisma = new PrismaClient();
       await this.prisma.$connect();
     } else {
-      throw loggedError("Prisma client already connected");
+      throw this.ctx.loggedError("Prisma client already connected");
     }
   }
 
@@ -35,7 +35,7 @@ class PrismaDb implements Db {
 
   async savePrices(prices: Price[]): Promise<void> {
     if (this.prisma === undefined) {
-      throw loggedError("Prisma client not connected");
+      throw this.ctx.loggedError("Prisma client not connected");
     }
 
     await this.prisma.price.createMany({
@@ -52,7 +52,7 @@ class PrismaDb implements Db {
 
   async fetchPrices24h(token: string): Promise<Price[]> {
     if (this.prisma === undefined) {
-      throw loggedError("Prisma client not connected");
+      throw this.ctx.loggedError("Prisma client not connected");
     }
 
     const records = await this.prisma.price.findMany({
@@ -88,7 +88,10 @@ export class TestDb implements Db {
     "db-api-mock.json",
   );
 
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly ctx: Ctx,
+  ) {}
 
   public readMockedData(): void {
     try {
@@ -97,7 +100,7 @@ export class TestDb implements Db {
         this.dbMock = JSON.parse(fileContent) as DbMockData;
       }
     } catch (error) {
-      logWarning(`Failed to read mock data: ${error}`);
+      this.ctx.logWarning(`Failed to read mock data: ${error}`);
       this.dbMock = {};
     }
   }
@@ -110,7 +113,7 @@ export class TestDb implements Db {
       }
       writeFileSync(this.mockFilePath, JSON.stringify(this.dbMock, null, 2));
     } catch (error) {
-      logWarning(`Failed to save mock data: ${error}`);
+      this.ctx.logWarning(`Failed to save mock data: ${error}`);
     }
   }
 
@@ -125,7 +128,7 @@ export class TestDb implements Db {
       return;
     }
 
-    logWarning("Calling db.connect()");
+    this.ctx.logWarning("Calling db.connect()");
     await this.db.connect();
     this.dbMock[cacheKey] = undefined;
     this.updateMockedData();
@@ -138,7 +141,7 @@ export class TestDb implements Db {
       return;
     }
 
-    logWarning("Calling db.disconnect()");
+    this.ctx.logWarning("Calling db.disconnect()");
     await this.db.disconnect();
     this.dbMock[cacheKey] = undefined;
     this.updateMockedData();
@@ -151,7 +154,7 @@ export class TestDb implements Db {
       return;
     }
 
-    logWarning(`Calling db.savePrices(${prices.length} prices)`);
+    this.ctx.logWarning(`Calling db.savePrices(${prices.length} prices)`);
     await this.db.savePrices(prices);
     this.dbMock[cacheKey] = undefined;
     this.updateMockedData();
@@ -164,7 +167,7 @@ export class TestDb implements Db {
       return this.dbMock[cacheKey] as Price[];
     }
 
-    logWarning(`Calling db.fetchPrices24h(${token})`);
+    this.ctx.logWarning(`Calling db.fetchPrices24h(${token})`);
     const result = await this.db.fetchPrices24h(token);
     this.dbMock[cacheKey] = result;
     this.updateMockedData();
@@ -176,6 +179,6 @@ export function prismaDb(ctx: Ctx): PrismaDb {
   return new PrismaDb(ctx);
 }
 
-export function testDb(db: Db): TestDb {
-  return new TestDb(db);
+export function testDb(db: Db, ctx: Ctx): TestDb {
+  return new TestDb(db, ctx);
 }

@@ -1,6 +1,6 @@
 import { ChainCallDTO, signatures } from "@gala-chain/api";
 import { PrivateKeySigner } from "@gala-chain/gswap-sdk";
-import { log, loggedError } from "./log";
+import { Ctx } from "./ctx";
 import { promises as fs } from "fs";
 
 export interface Crypto {
@@ -14,9 +14,12 @@ class CryptoFromPath implements Crypto {
   private wallet: string | undefined;
   private signer: PrivateKeySigner | undefined;
 
-  constructor(path: string | undefined) {
+  constructor(
+    path: string | undefined,
+    private readonly ctx: Ctx,
+  ) {
     if (path === undefined || path === "") {
-      throw loggedError("Private key path is required");
+      throw this.ctx.loggedError("Private key path is required");
     }
 
     this.privateKeyPath = path;
@@ -34,17 +37,17 @@ class CryptoFromPath implements Crypto {
       const ethAddress = signatures.getEthAddress(publicKey);
       this.wallet = `eth|${ethAddress}`;
     } catch (error) {
-      throw loggedError(
+      throw this.ctx.loggedError(
         `Failed to read private key from the provided path: ${error}`,
       );
     }
 
-    log(`Wallet: ${this.wallet}\n`);
+    this.ctx.log(`Wallet: ${this.wallet}\n`);
   }
 
   public getSigner(): PrivateKeySigner {
     if (this.signer === undefined) {
-      throw loggedError("Private key is not loaded");
+      throw this.ctx.loggedError("Private key is not loaded");
     }
     return this.signer;
   }
@@ -56,7 +59,7 @@ class CryptoFromPath implements Crypto {
     }
 
     if (this.wallet === undefined) {
-      throw loggedError("Wallet is not loaded");
+      throw this.ctx.loggedError("Wallet is not loaded");
     }
     return this.wallet;
   }
@@ -91,8 +94,8 @@ class TestCrypto implements Crypto {
   }
 }
 
-export function cryptoFromPath(path: string | undefined): Crypto {
-  return new CryptoFromPath(path);
+export function cryptoFromPath(path: string | undefined, ctx: Ctx): Crypto {
+  return new CryptoFromPath(path, ctx);
 }
 
 export function testCrypto(wallet: string): Crypto {

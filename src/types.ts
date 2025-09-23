@@ -1,7 +1,3 @@
-export interface Ctx {
-  now(): Date;
-}
-
 export interface Price {
   date: Date;
   tokenIn: string;

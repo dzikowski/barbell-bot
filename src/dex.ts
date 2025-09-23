@@ -1,7 +1,7 @@
 import { GSwap, GalaChainTokenClassKey } from "@gala-chain/gswap-sdk";
 import { Crypto } from "./crypto";
-import { log, logWarning, loggedError } from "./log";
-import { Ctx, Price } from "./types";
+import { Ctx } from "./ctx";
+import { Price } from "./types";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
@@ -78,7 +78,9 @@ class GalaDex implements Dex {
     amountOut: number | undefined,
   ): Promise<Price> {
     if (amountIn === undefined && amountOut === undefined) {
-      throw loggedError("Either amountIn or amountOut must be provided");
+      throw this.ctx.loggedError(
+        "Either amountIn or amountOut must be provided",
+      );
     }
 
     const tokenInQuery = `tokenIn=${encodeURIComponent(`${tokenIn}$Unit$none$none`)}`;
@@ -100,7 +102,7 @@ class GalaDex implements Dex {
 
       if (!response.ok) {
         const body = await response.text();
-        throw loggedError(
+        throw this.ctx.loggedError(
           `HTTP error! Fetching price for ${info}: ${response.status}, ${body}`,
         );
       }
@@ -121,7 +123,7 @@ class GalaDex implements Dex {
       // Extract the price from the response
       // The response should contain amountOut which represents the price
       if (respJson.data?.amountOut === undefined) {
-        throw loggedError(
+        throw this.ctx.loggedError(
           `Invalid response format: missing amountOut for ${info}`,
         );
       }
@@ -143,7 +145,9 @@ class GalaDex implements Dex {
       return price;
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      throw loggedError(`Failed to fetch price for ${info}: ${errorMessage}`);
+      throw this.ctx.loggedError(
+        `Failed to fetch price for ${info}: ${errorMessage}`,
+      );
     }
   }
 
@@ -229,12 +233,12 @@ class GalaDex implements Dex {
     const fee = SUPPORTED_FEE_RATE;
     const wallet = this.crypto.getWallet();
 
-    log(
+    this.ctx.log(
       `    swapping: ${tokenIn}, ${tokenOut}, ${JSON.stringify(amount)}, ${fee}, ${wallet}`,
     );
 
     if (process.env.NO_TRADE) {
-      log("    skipping swap because NO_TRADE is set");
+      this.ctx.log("    skipping swap because NO_TRADE is set");
       return {
         date: this.ctx.now(),
         uniqueId: `NO_TRADE_${this.ctx.now().toISOString()}`,
@@ -252,7 +256,7 @@ class GalaDex implements Dex {
       amount,
       wallet,
     );
-    log(`    uniqueId: ${response.transactionId}`);
+    this.ctx.log(`    uniqueId: ${response.transactionId}`);
     return {
       date: this.ctx.now(),
       uniqueId: response.transactionId,
@@ -276,7 +280,10 @@ export class TestDex implements Dex {
     "dex-api-mock.json",
   );
 
-  constructor(private readonly dex: Dex) {}
+  constructor(
+    private readonly dex: Dex,
+    private readonly ctx: Ctx,
+  ) {}
 
   public readMockedData(): void {
     try {
@@ -285,7 +292,7 @@ export class TestDex implements Dex {
         this.apiMock = JSON.parse(fileContent) as ApiMockData;
       }
     } catch (error) {
-      logWarning(`Failed to read mock data: ${error}`);
+      this.ctx.logWarning(`Failed to read mock data: ${error}`);
       this.apiMock = {};
     }
   }
@@ -298,7 +305,7 @@ export class TestDex implements Dex {
       }
       writeFileSync(this.mockFilePath, JSON.stringify(this.apiMock, null, 2));
     } catch (error) {
-      logWarning(`Failed to save mock data: ${error}`);
+      this.ctx.logWarning(`Failed to save mock data: ${error}`);
     }
   }
 
@@ -324,7 +331,7 @@ export class TestDex implements Dex {
       return this.apiMock[cacheKey] as Price;
     }
 
-    logWarning(
+    this.ctx.logWarning(
       `Calling dex.fetchSwapPrice(${tokenIn}, ${amountIn}, ${tokenOut}, ${amountOut})`,
     );
     const result = await this.dex.fetchSwapPrice(
@@ -344,7 +351,7 @@ export class TestDex implements Dex {
       return this.apiMock[cacheKey] as PoolResponse[];
     }
 
-    logWarning("Calling dex.fetchPools()");
+    this.ctx.logWarning("Calling dex.fetchPools()");
     const result = await this.dex.fetchPools();
     this.apiMock[cacheKey] = result;
     return result;
@@ -357,7 +364,7 @@ export class TestDex implements Dex {
       return this.apiMock[cacheKey] as BalanceResponse[];
     }
 
-    logWarning("Calling dex.fetchBalances()");
+    this.ctx.logWarning("Calling dex.fetchBalances()");
     const result = await this.dex.fetchBalances();
     this.apiMock[cacheKey] = result;
     return result;
@@ -381,7 +388,7 @@ export class TestDex implements Dex {
       return this.apiMock[cacheKey] as SwapResponse;
     }
 
-    logWarning(
+    this.ctx.logWarning(
       `Calling dex.swap(${tokenIn}, ${amountIn}, ${tokenOut}, ${amountOut})`,
     );
     const result = await this.dex.swap(tokenIn, amountIn, tokenOut, amountOut);
@@ -394,6 +401,6 @@ export function galaDex(crypto: Crypto, ctx: Ctx): Dex {
   return new GalaDex(crypto, ctx);
 }
 
-export function testDex(dex: Dex): TestDex {
-  return new TestDex(dex);
+export function testDex(dex: Dex, ctx: Ctx): TestDex {
+  return new TestDex(dex, ctx);
 }
