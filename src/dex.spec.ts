@@ -1,6 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
-import { galaDex, testDex } from "./dex";
+import { galaDex } from "./dex";
 import { testCrypto } from "./crypto";
 import { DefaultCtx } from "./ctx";
 
@@ -12,8 +12,7 @@ void describe("TestDex", () => {
 
   void test("should fetch price", async () => {
     // Given
-    const realDex = galaDex(testCrypto(wallet), ctx);
-    const dex = testDex(realDex, ctx);
+    const dex = galaDex(testCrypto(wallet), ctx);
 
     // When
     const p = await dex.fetchSwapPrice("GALA", 1, "GUSDT", undefined);
@@ -25,15 +24,12 @@ void describe("TestDex", () => {
 
   void test("should check the reverse price", async () => {
     // Given
-    const realDex = galaDex(testCrypto(wallet), ctx);
-    const dex = testDex(realDex, ctx);
+    const dex = galaDex(testCrypto(wallet), ctx);
     const amount = 100;
     const p1 = await dex.fetchSwapPrice("GUSDC", amount, "GALA", undefined);
-    console.log(p1);
 
     // When
     const p2 = await dex.fetchSwapPrice("GALA", undefined, "GUSDC", amount);
-    console.log(p2);
 
     // Then - allow for fees and slippage (within 5%)
     const diff = Math.abs(p1.amountIn - p2.amountOut) / p1.amountIn;
@@ -45,8 +41,7 @@ void describe("TestDex", () => {
 
   void test("should fetch balances", async () => {
     // Given
-    const realDex = galaDex(testCrypto(wallet), ctx);
-    const dex = testDex(realDex, ctx);
+    const dex = galaDex(testCrypto(wallet), ctx);
 
     // When
     const balances = await dex.fetchBalances();

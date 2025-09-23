@@ -148,16 +148,7 @@ export class TestDb implements Db {
   }
 
   async savePrices(prices: Price[]): Promise<void> {
-    const cacheKey = this.getCacheKey("savePrices", prices);
-
-    if (this.dbMock[cacheKey] !== undefined) {
-      return;
-    }
-
-    this.ctx.logWarning(`Calling db.savePrices(${prices.length} prices)`);
-    await this.db.savePrices(prices);
-    this.dbMock[cacheKey] = undefined;
-    this.updateMockedData();
+    this.ctx.logWarning(`Ignoring db.savePrices(${prices.length} prices)`);
   }
 
   async fetchPrices24h(token: string): Promise<Price[]> {

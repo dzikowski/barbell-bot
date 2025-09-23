@@ -53,6 +53,33 @@
     "price": 21.739022684626693,
     "fee": 10000
   },
+  "fetchSwapPrice([\"GALA\",1,\"GUSDT\",null])": {
+    "date": "2025-09-23T09:10:51.123Z",
+    "tokenIn": "GALA",
+    "tokenOut": "GUSDT",
+    "amountIn": 1,
+    "amountOut": 0.015125712,
+    "price": 0.015125712,
+    "fee": 10000
+  },
+  "fetchSwapPrice([\"GUSDC\",100,\"GALA\",null])": {
+    "date": "2025-09-23T09:10:51.527Z",
+    "tokenIn": "GUSDC",
+    "tokenOut": "GALA",
+    "amountIn": 100,
+    "amountOut": 1.40712906,
+    "price": 0.0140712906,
+    "fee": 10000
+  },
+  "fetchSwapPrice([\"GALA\",null,\"GUSDC\",100])": {
+    "date": "2025-09-23T09:10:51.528Z",
+    "tokenIn": "GALA",
+    "tokenOut": "GUSDC",
+    "amountIn": 71.07,
+    "amountOut": 100,
+    "price": 1.40712906,
+    "fee": 10000
+  },
   "fetchBalances([])": [
     {
       "token": "GALA",
