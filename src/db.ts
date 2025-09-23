@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Ctx } from "./ctx";
-import { Price } from "./types";
+import { Price, Trade } from "./types";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
@@ -9,6 +9,7 @@ export interface Db {
   disconnect(): Promise<void>;
   savePrices(prices: Price[]): Promise<void>;
   fetchPrices24h(token: string): Promise<Price[]>;
+  saveTrades(trades: Trade[]): Promise<void>;
 }
 
 class PrismaDb implements Db {
@@ -73,6 +74,24 @@ class PrismaDb implements Db {
       fee: record.fee,
       price: record.amountOut / record.amountIn,
     }));
+  }
+
+  async saveTrades(trades: Trade[]): Promise<void> {
+    if (this.prisma === undefined) {
+      throw this.ctx.loggedError("Prisma client not connected");
+    }
+
+    await this.prisma.trade.createMany({
+      data: trades.map(trade => ({
+        date: trade.date,
+        uniqueId: trade.uniqueId,
+        tokenIn: trade.tokenIn,
+        amountIn: trade.amountIn,
+        tokenOut: trade.tokenOut,
+        amountOut: trade.amountOut,
+        wasSuccessful: trade.wasSuccessful,
+      })),
+    });
   }
 }
 
@@ -163,6 +182,10 @@ export class TestDb implements Db {
     this.dbMock[cacheKey] = result;
     this.updateMockedData();
     return result;
+  }
+
+  async saveTrades(trades: Trade[]): Promise<void> {
+    this.ctx.logWarning(`Ignoring db.saveTrades(${trades.length} trades)`);
   }
 }
 

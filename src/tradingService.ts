@@ -335,6 +335,9 @@ export class TradingService {
           `(price: ${price.toFixed(2).padStart(11, " ")} GALA)`,
       );
     });
+
+    await this.db.saveTrades(tradeInfos);
+
     this.ctx.log("");
   }
 }

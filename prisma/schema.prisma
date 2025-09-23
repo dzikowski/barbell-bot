@@ -19,3 +19,14 @@ model Price {
   amountOut Float
   fee       Float
 }
+
+model Trade {
+  id            String   @id @default(cuid())
+  date          DateTime
+  uniqueId      String   @unique
+  tokenIn       String
+  amountIn      Float
+  tokenOut      String
+  amountOut     Float
+  wasSuccessful Boolean
+}
