@@ -1,0 +1,76 @@
+{
+  "fetchSwapPrice([\"GALA\",1,\"GUSDT\",null])": {
+    "date": "2025-09-23T08:57:57.954Z",
+    "tokenIn": "GALA",
+    "tokenOut": "GUSDT",
+    "amountIn": 1,
+    "amountOut": 0.015126,
+    "price": 0.015126,
+    "fee": 10000
+  },
+  "fetchSwapPrice([\"GUSDC\",100,\"GALA\",null])": {
+    "date": "2025-09-23T08:57:58.346Z",
+    "tokenIn": "GUSDC",
+    "tokenOut": "GALA",
+    "amountIn": 100,
+    "amountOut": 6471.91967338,
+    "price": 64.7191967338,
+    "fee": 10000
+  },
+  "fetchSwapPrice([\"GALA\",null,\"GUSDC\",100])": {
+    "date": "2025-09-23T08:57:58.508Z",
+    "tokenIn": "GALA",
+    "tokenOut": "GUSDC",
+    "amountIn": 6604.76024241,
+    "amountOut": 99.999999,
+    "price": 0.015140594863366483,
+    "fee": 10000
+  },
+  "fetchBalances([])": [
+    {
+      "token": "GALA",
+      "amount": 189776.56144517,
+      "decimal": 8
+    },
+    {
+      "token": "GUSDC",
+      "amount": 11034.205002,
+      "decimal": 6
+    },
+    {
+      "token": "GSOL",
+      "amount": 153.300019,
+      "decimal": 9
+    },
+    {
+      "token": "GWTRX",
+      "amount": 0.964616,
+      "decimal": 6
+    },
+    {
+      "token": "GWETH",
+      "amount": 0.000068184504122212,
+      "decimal": 18
+    },
+    {
+      "token": "GWBTC",
+      "amount": 0,
+      "decimal": 8
+    },
+    {
+      "token": "GUSDT",
+      "amount": 0,
+      "decimal": 6
+    },
+    {
+      "token": "GPENGU",
+      "amount": 0,
+      "decimal": 6
+    },
+    {
+      "token": "GTRUMP",
+      "amount": 0,
+      "decimal": 6
+    }
+  ]
+}

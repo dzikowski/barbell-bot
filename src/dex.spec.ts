@@ -1,6 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
-import { galaDex } from "./dex";
+import { galaDex, testDex } from "./dex";
 import { testCrypto } from "./crypto";
 
 void describe("TestDex", () => {
@@ -9,7 +9,8 @@ void describe("TestDex", () => {
 
   void test("should fetch price", async () => {
     // Given
-    const dex = galaDex(testCrypto(wallet));
+    const realDex = galaDex(testCrypto(wallet));
+    const dex = testDex(realDex);
 
     // When
     const p = await dex.fetchSwapPrice("GALA", 1, "GUSDT", undefined);
@@ -21,7 +22,8 @@ void describe("TestDex", () => {
 
   void test("should check the reverse price", async () => {
     // Given
-    const dex = galaDex(testCrypto(wallet));
+    const realDex = galaDex(testCrypto(wallet));
+    const dex = testDex(realDex);
     const amount = 100;
     const p1 = await dex.fetchSwapPrice("GUSDC", amount, "GALA", undefined);
     console.log(p1);
@@ -40,7 +42,8 @@ void describe("TestDex", () => {
 
   void test("should fetch balances", async () => {
     // Given
-    const dex = galaDex(testCrypto(wallet));
+    const realDex = galaDex(testCrypto(wallet));
+    const dex = testDex(realDex);
 
     // When
     const balances = await dex.fetchBalances();

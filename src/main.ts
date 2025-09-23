@@ -13,7 +13,7 @@ async function main(): Promise<void> {
     db = prismaDb;
     await Promise.all([crypto.ensurePrivateKey(), db.connect()]);
 
-    const service = new TradingService(crypto, db, galaDex(crypto));
+    const service = new TradingService(db, galaDex(crypto));
 
     // Bot logic
     const prices = await service.updatePrices();

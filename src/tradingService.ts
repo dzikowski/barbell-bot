@@ -1,6 +1,5 @@
 import { BalanceResponse, Dex, SwapResponse } from "./dex";
 import { Db } from "./db";
-import { Crypto } from "./crypto";
 import { log, loggedError } from "./log";
 import { Price, Trade } from "./types";
 
@@ -42,7 +41,6 @@ interface Stats {
 
 export class TradingService {
   constructor(
-    private readonly crypto: Crypto,
     private readonly db: Db,
     private readonly dex: Dex,
   ) {}

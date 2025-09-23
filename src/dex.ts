@@ -1,7 +1,9 @@
 import { GSwap, GalaChainTokenClassKey } from "@gala-chain/gswap-sdk";
 import { Crypto } from "./crypto";
-import { log, loggedError } from "./log";
+import { log, logWarning, loggedError } from "./log";
 import { Price } from "./types";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 
 // Native fetch is available in Node.js 18+ and TypeScript ES2022+
 declare const fetch: typeof globalThis.fetch;
@@ -259,42 +261,108 @@ class GalaDex implements Dex {
   }
 }
 
-class TestDex implements Dex {
-  private readonly prices: Record<string, Record<string, number>> = {};
+type ApiMockData = {
+  [key: string]: Price | PoolResponse[] | BalanceResponse[] | SwapResponse;
+};
 
-  setPrice(tokenIn: string, tokenOut: string, price: number) {
-    this.prices[tokenIn] = {
-      ...(this.prices[tokenIn] ?? {}),
-      [tokenOut]: price,
-    };
+class TestDex implements Dex {
+  private apiMock: ApiMockData = {};
+  private readonly mockFilePath = join(
+    process.cwd(),
+    "data",
+    "dex-api-mock.json",
+  );
+
+  constructor(private readonly dex: Dex) {
+    this.readMockedData();
+  }
+
+  private readMockedData(): void {
+    try {
+      if (existsSync(this.mockFilePath)) {
+        const fileContent = readFileSync(this.mockFilePath, "utf-8");
+        this.apiMock = JSON.parse(fileContent) as ApiMockData;
+      }
+    } catch (error) {
+      logWarning(`Failed to read mock data: ${error}`);
+      this.apiMock = {};
+    }
+  }
+
+  private updateMockedData(): void {
+    try {
+      const dir = dirname(this.mockFilePath);
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
+      }
+      writeFileSync(this.mockFilePath, JSON.stringify(this.apiMock, null, 2));
+    } catch (error) {
+      logWarning(`Failed to save mock data: ${error}`);
+    }
+  }
+
+  private getCacheKey(method: string, ...params: unknown[]): string {
+    return `${method}(${JSON.stringify(params)})`;
   }
 
   async fetchSwapPrice(
     tokenIn: string,
-    amountIn: number,
+    amountIn: number | undefined,
     tokenOut: string,
+    amountOut: number | undefined,
   ): Promise<Price> {
-    const price = this.prices[tokenIn]?.[tokenOut];
-    if (price === undefined) {
-      throw new Error(`Price for ${tokenIn}/${tokenOut} not found`);
-    }
-    return {
-      date: new Date(),
+    const cacheKey = this.getCacheKey(
+      "fetchSwapPrice",
       tokenIn,
-      tokenOut,
       amountIn,
-      amountOut: price * amountIn,
-      price,
-      fee: SUPPORTED_FEE_RATE,
-    };
+      tokenOut,
+      amountOut,
+    );
+
+    if (this.apiMock[cacheKey]) {
+      return this.apiMock[cacheKey] as Price;
+    }
+
+    logWarning(
+      `Calling dex.fetchSwapPrice(${tokenIn}, ${amountIn}, ${tokenOut}, ${amountOut})`,
+    );
+    const result = await this.dex.fetchSwapPrice(
+      tokenIn,
+      amountIn,
+      tokenOut,
+      amountOut,
+    );
+    this.apiMock[cacheKey] = result;
+    this.updateMockedData();
+    return result;
   }
 
   async fetchPools(): Promise<PoolResponse[]> {
-    return [];
+    const cacheKey = this.getCacheKey("fetchPools");
+
+    if (this.apiMock[cacheKey]) {
+      return this.apiMock[cacheKey] as PoolResponse[];
+    }
+
+    logWarning("Calling dex.fetchPools()");
+    const result = await this.dex.fetchPools();
+    this.apiMock[cacheKey] = result;
+    this.updateMockedData();
+    return result;
   }
 
   async fetchBalances(): Promise<BalanceResponse[]> {
-    return [];
+    const cacheKey = this.getCacheKey("fetchBalances");
+
+    if (this.apiMock[cacheKey]) {
+      return this.apiMock[cacheKey] as BalanceResponse[];
+    }
+
+    logWarning("Calling dex.fetchBalances()");
+    const result = await this.dex.fetchBalances();
+    this.apiMock[cacheKey] = result;
+    this.updateMockedData();
+    return result;
   }
 
   async swap(
@@ -303,17 +371,25 @@ class TestDex implements Dex {
     tokenOut: string,
     amountOut: number | undefined,
   ): Promise<SwapResponse> {
-    log(
-      `Placehold for swapping: ${JSON.stringify({ tokenIn, amountIn, tokenOut, amountOut })}`,
-    );
-    return {
-      date: new Date(),
-      uniqueId: `NO_TRADE_${new Date().toISOString()}`,
+    const cacheKey = this.getCacheKey(
+      "swap",
       tokenIn,
-      tokenOut,
       amountIn,
+      tokenOut,
       amountOut,
-    };
+    );
+
+    if (this.apiMock[cacheKey]) {
+      return this.apiMock[cacheKey] as SwapResponse;
+    }
+
+    logWarning(
+      `Calling dex.swap(${tokenIn}, ${amountIn}, ${tokenOut}, ${amountOut})`,
+    );
+    const result = await this.dex.swap(tokenIn, amountIn, tokenOut, amountOut);
+    this.apiMock[cacheKey] = result;
+    this.updateMockedData();
+    return result;
   }
 }
 
@@ -321,6 +397,6 @@ export function galaDex(crypto: Crypto): Dex {
   return new GalaDex(crypto);
 }
 
-export function testDex(): TestDex {
-  return new TestDex();
+export function testDex(dex: Dex): TestDex {
+  return new TestDex(dex);
 }
