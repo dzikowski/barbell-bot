@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
-import { log, loggedError } from "./log";
+import { logWarning, loggedError } from "./log";
 import { Price } from "./types";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 
 export interface Db {
   connect(): Promise<void>;
@@ -74,27 +76,103 @@ class PrismaDb implements Db {
   }
 }
 
-// kept intentionally, even if it is used only for testing
-class InMemoryDb implements Db {
+type DbMockData = {
+  [key: string]: Price[] | void;
+};
+
+export class TestDb implements Db {
+  private dbMock: DbMockData = {};
+  private readonly mockFilePath = join(
+    process.cwd(),
+    "data",
+    "db-api-mock.json",
+  );
+
+  constructor(private readonly db: Db) {}
+
+  public readMockedData(): void {
+    try {
+      if (existsSync(this.mockFilePath)) {
+        const fileContent = readFileSync(this.mockFilePath, "utf-8");
+        this.dbMock = JSON.parse(fileContent) as DbMockData;
+      }
+    } catch (error) {
+      logWarning(`Failed to read mock data: ${error}`);
+      this.dbMock = {};
+    }
+  }
+
+  public updateMockedData(): void {
+    try {
+      const dir = dirname(this.mockFilePath);
+      if (!existsSync(dir)) {
+        mkdirSync(dir, { recursive: true });
+      }
+      writeFileSync(this.mockFilePath, JSON.stringify(this.dbMock, null, 2));
+    } catch (error) {
+      logWarning(`Failed to save mock data: ${error}`);
+    }
+  }
+
+  private getCacheKey(method: string, ...params: unknown[]): string {
+    return `${method}(${JSON.stringify(params)})`;
+  }
+
   async connect(): Promise<void> {
-    return;
+    const cacheKey = this.getCacheKey("connect");
+    
+    if (this.dbMock[cacheKey] !== undefined) {
+      return;
+    }
+
+    logWarning("Calling db.connect()");
+    await this.db.connect();
+    this.dbMock[cacheKey] = undefined;
+    this.updateMockedData();
   }
 
   async disconnect(): Promise<void> {
-    return;
+    const cacheKey = this.getCacheKey("disconnect");
+    
+    if (this.dbMock[cacheKey] !== undefined) {
+      return;
+    }
+
+    logWarning("Calling db.disconnect()");
+    await this.db.disconnect();
+    this.dbMock[cacheKey] = undefined;
+    this.updateMockedData();
   }
 
   async savePrices(prices: Price[]): Promise<void> {
-    // In-memory implementation - just log for testing
-    log(`InMemoryDb: Would save ${prices.length} prices`);
+    const cacheKey = this.getCacheKey("savePrices", prices);
+    
+    if (this.dbMock[cacheKey] !== undefined) {
+      return;
+    }
+
+    logWarning(`Calling db.savePrices(${prices.length} prices)`);
+    await this.db.savePrices(prices);
+    this.dbMock[cacheKey] = undefined;
+    this.updateMockedData();
   }
 
   async fetchPrices24h(token: string): Promise<Price[]> {
-    // In-memory implementation - just log for testing
-    log(`InMemoryDb: Would fetch ${token} prices for 24h`);
-    return [];
+    const cacheKey = this.getCacheKey("fetchPrices24h", token);
+    
+    if (this.dbMock[cacheKey]) {
+      return this.dbMock[cacheKey] as Price[];
+    }
+
+    logWarning(`Calling db.fetchPrices24h(${token})`);
+    const result = await this.db.fetchPrices24h(token);
+    this.dbMock[cacheKey] = result;
+    this.updateMockedData();
+    return result;
   }
 }
 
 export const prismaDb = new PrismaDb();
-export const inMemoryDb = new InMemoryDb();
+export function testDb(db: Db): TestDb {
+  return new TestDb(db);
+}

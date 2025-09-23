@@ -1,0 +1,804 @@
+{
+  "fetchPrices24h([\"GWETH\"])": [
+    {
+      "date": "2025-09-22T10:25:57.361Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003762215108022194,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 265800.85701843415
+    },
+    {
+      "date": "2025-09-22T11:05:15.323Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003762215108022194,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 265800.85701843415
+    },
+    {
+      "date": "2025-09-22T11:10:43.462Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003762215108022194,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 265800.85701843415
+    },
+    {
+      "date": "2025-09-22T11:11:20.336Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003762215108022194,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 265800.85701843415
+    },
+    {
+      "date": "2025-09-22T11:14:58.795Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003762215108022194,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 265800.85701843415
+    },
+    {
+      "date": "2025-09-22T11:20:11.801Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003762215108022194,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 265800.85701843415
+    },
+    {
+      "date": "2025-09-22T15:21:33.406Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003732446507534855,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 267920.78546102555
+    },
+    {
+      "date": "2025-09-22T15:23:43.586Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003732592680341046,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 267910.2933644049
+    },
+    {
+      "date": "2025-09-22T15:24:38.637Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003732690129680731,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 267903.2990304859
+    },
+    {
+      "date": "2025-09-23T08:38:39.598Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003725283979139499,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 268435.9113559416
+    },
+    {
+      "date": "2025-09-23T09:00:18.434Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003726748463974918,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 268330.42521292367
+    },
+    {
+      "date": "2025-09-23T09:01:57.056Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003726894920577723,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 268319.8805709782
+    },
+    {
+      "date": "2025-09-23T09:02:30.189Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003726894920577723,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 268319.8805709782
+    },
+    {
+      "date": "2025-09-23T09:06:14.331Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003727187838211823,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 268298.7934624099
+    },
+    {
+      "date": "2025-09-23T09:01:57.056Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003726894920577723,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 268319.8805709782
+    },
+    {
+      "date": "2025-09-23T09:10:51.534Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003727480761738787,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 268277.70923853735
+    },
+    {
+      "date": "2025-09-23T09:10:51.534Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003727480761738787,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 268277.70923853735
+    },
+    {
+      "date": "2025-09-23T09:20:33.306Z",
+      "tokenIn": "GWETH",
+      "amountIn": 0.003728167281484277,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 268228.30750015995
+    }
+  ],
+  "fetchPrices24h([\"GWBTC\"])": [
+    {
+      "date": "2025-09-22T10:25:57.367Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00014014,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7135721.421435707
+    },
+    {
+      "date": "2025-09-22T11:05:15.328Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00014003,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 7141326.858458902
+    },
+    {
+      "date": "2025-09-22T11:10:43.473Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00014003,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 7141326.858458902
+    },
+    {
+      "date": "2025-09-22T11:11:20.301Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00014003,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 7141326.858458902
+    },
+    {
+      "date": "2025-09-22T11:14:58.793Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00014003,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 7141326.858458902
+    },
+    {
+      "date": "2025-09-22T11:20:11.812Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013981,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 7152564.194192118
+    },
+    {
+      "date": "2025-09-22T15:21:33.403Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013789,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 7252157.516788744
+    },
+    {
+      "date": "2025-09-22T15:23:43.608Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013789,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 7252157.516788744
+    },
+    {
+      "date": "2025-09-22T15:24:38.645Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013789,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 7252157.516788744
+    },
+    {
+      "date": "2025-09-23T08:38:39.596Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013683,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7308338.814587444
+    },
+    {
+      "date": "2025-09-23T09:00:18.431Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013683,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7308338.814587444
+    },
+    {
+      "date": "2025-09-23T09:01:57.052Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013683,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7308338.814587444
+    },
+    {
+      "date": "2025-09-23T09:02:30.064Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013683,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7308338.814587444
+    },
+    {
+      "date": "2025-09-23T09:06:14.287Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013683,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7308338.814587444
+    },
+    {
+      "date": "2025-09-23T09:01:57.052Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013683,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7308338.814587444
+    },
+    {
+      "date": "2025-09-23T09:10:51.535Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013683,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7308338.814587444
+    },
+    {
+      "date": "2025-09-23T09:10:51.535Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013683,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7308338.814587444
+    },
+    {
+      "date": "2025-09-23T09:20:33.312Z",
+      "tokenIn": "GWBTC",
+      "amountIn": 0.00013683,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 7308338.814587444
+    }
+  ],
+  "fetchPrices24h([\"GOSMI\"])": [
+    {
+      "date": "2025-09-22T11:10:43.471Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1788.394439186412,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 0.5591607634694539
+    },
+    {
+      "date": "2025-09-22T11:11:20.342Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1788.394439186412,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 0.5591607634694539
+    },
+    {
+      "date": "2025-09-22T11:14:58.797Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1784.88820678293,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.5602591782442179
+    },
+    {
+      "date": "2025-09-22T11:20:11.808Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1784.88820678293,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.5602591782442179
+    },
+    {
+      "date": "2025-09-22T15:21:33.412Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1623.343878844631,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.6160124253535989
+    },
+    {
+      "date": "2025-09-22T15:23:43.599Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1623.343878844631,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.6160124253535989
+    },
+    {
+      "date": "2025-09-22T15:24:38.646Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1623.343878844631,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.6160124253535989
+    },
+    {
+      "date": "2025-09-23T08:38:39.591Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1351.035947921222,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.7401727552317574
+    },
+    {
+      "date": "2025-09-23T09:00:18.418Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1351.035947921222,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.7401727552317574
+    },
+    {
+      "date": "2025-09-23T09:01:57.058Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1351.035947921222,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.7401727552317574
+    },
+    {
+      "date": "2025-09-23T09:02:30.075Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1351.035947921222,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.7401727552317574
+    },
+    {
+      "date": "2025-09-23T09:06:14.285Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1351.035947921222,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.7401727552317574
+    },
+    {
+      "date": "2025-09-23T09:01:57.058Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1351.035947921222,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.7401727552317574
+    },
+    {
+      "date": "2025-09-23T09:10:51.528Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1351.035947921222,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.7401727552317574
+    },
+    {
+      "date": "2025-09-23T09:10:51.528Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1351.035947921222,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.7401727552317574
+    },
+    {
+      "date": "2025-09-23T09:20:33.300Z",
+      "tokenIn": "GOSMI",
+      "amountIn": 1351.035947921222,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 0.7401727552317574
+    }
+  ],
+  "fetchPrices24h([\"GWTRX\"])": [
+    {
+      "date": "2025-09-22T10:25:57.349Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 47.361264,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.11430134107063
+    },
+    {
+      "date": "2025-09-22T11:05:15.330Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 47.361264,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.11430134107063
+    },
+    {
+      "date": "2025-09-22T11:10:43.484Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 47.361264,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.11430134107063
+    },
+    {
+      "date": "2025-09-22T11:11:20.337Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 47.361264,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.11430134107063
+    },
+    {
+      "date": "2025-09-22T11:14:58.794Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 47.361264,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.11430134107063
+    },
+    {
+      "date": "2025-09-22T11:20:11.813Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 47.361264,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.11430134107063
+    },
+    {
+      "date": "2025-09-22T15:21:33.407Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-22T15:23:43.603Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-22T15:24:38.642Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-23T08:38:39.599Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-23T09:00:18.442Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-23T09:01:57.060Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-23T09:02:30.077Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-23T09:06:14.293Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-23T09:01:57.060Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-23T09:10:51.536Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-23T09:10:51.536Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    },
+    {
+      "date": "2025-09-23T09:20:33.298Z",
+      "tokenIn": "GWTRX",
+      "amountIn": 46.000228,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 21.739022684626693
+    }
+  ],
+  "fetchPrices24h([\"GSOL\"])": [
+    {
+      "date": "2025-09-22T10:25:57.364Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070755551,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 14133.16673896017
+    },
+    {
+      "date": "2025-09-22T11:05:15.333Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070755551,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 14133.16673896017
+    },
+    {
+      "date": "2025-09-22T11:10:43.482Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070755551,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 14133.16673896017
+    },
+    {
+      "date": "2025-09-22T11:11:20.344Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070755551,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 14133.16673896017
+    },
+    {
+      "date": "2025-09-22T11:14:58.790Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070755551,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 14133.16673896017
+    },
+    {
+      "date": "2025-09-22T11:20:11.809Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070755551,
+      "tokenOut": "GALA",
+      "amountOut": 999.99999999,
+      "fee": 10000,
+      "price": 14133.16673896017
+    },
+    {
+      "date": "2025-09-22T15:21:33.409Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070620145,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14160.26545966452
+    },
+    {
+      "date": "2025-09-22T15:23:43.600Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070620145,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14160.26545966452
+    },
+    {
+      "date": "2025-09-22T15:24:38.640Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070620145,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14160.26545966452
+    },
+    {
+      "date": "2025-09-23T08:38:39.594Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070285453,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14227.69516759037
+    },
+    {
+      "date": "2025-09-23T09:00:18.444Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070285453,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14227.69516759037
+    },
+    {
+      "date": "2025-09-23T09:01:57.063Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070285453,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14227.69516759037
+    },
+    {
+      "date": "2025-09-23T09:02:30.444Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070285453,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14227.69516759037
+    },
+    {
+      "date": "2025-09-23T09:06:14.282Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070285453,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14227.69516759037
+    },
+    {
+      "date": "2025-09-23T09:01:57.063Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070285453,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14227.69516759037
+    },
+    {
+      "date": "2025-09-23T09:10:51.527Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070285453,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14227.69516759037
+    },
+    {
+      "date": "2025-09-23T09:10:51.527Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070285453,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14227.69516759037
+    },
+    {
+      "date": "2025-09-23T09:20:33.311Z",
+      "tokenIn": "GSOL",
+      "amountIn": 0.070285453,
+      "tokenOut": "GALA",
+      "amountOut": 1000,
+      "fee": 10000,
+      "price": 14227.69516759037
+    }
+  ]
+}
