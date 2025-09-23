@@ -46,7 +46,9 @@ export class TestCtx extends DefaultCtx {
   }
 
   log(message: string, char: string = "·"): void {
-    this.logs.push(`${char} ${message}`);
+    message.split("\n").forEach(line => {
+      this.logs.push(`${char} ${line}`);
+    });
   }
 
   getLogs(): string {
