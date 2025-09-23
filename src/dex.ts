@@ -265,7 +265,7 @@ type ApiMockData = {
   [key: string]: Price | PoolResponse[] | BalanceResponse[] | SwapResponse;
 };
 
-class TestDex implements Dex {
+export class TestDex implements Dex {
   private apiMock: ApiMockData = {};
   private readonly mockFilePath = join(
     process.cwd(),
@@ -273,11 +273,9 @@ class TestDex implements Dex {
     "dex-api-mock.json",
   );
 
-  constructor(private readonly dex: Dex) {
-    this.readMockedData();
-  }
+  constructor(private readonly dex: Dex) {}
 
-  private readMockedData(): void {
+  public readMockedData(): void {
     try {
       if (existsSync(this.mockFilePath)) {
         const fileContent = readFileSync(this.mockFilePath, "utf-8");
@@ -289,7 +287,7 @@ class TestDex implements Dex {
     }
   }
 
-  private updateMockedData(): void {
+  public updateMockedData(): void {
     try {
       const dir = dirname(this.mockFilePath);
       if (!existsSync(dir)) {
@@ -333,7 +331,6 @@ class TestDex implements Dex {
       amountOut,
     );
     this.apiMock[cacheKey] = result;
-    this.updateMockedData();
     return result;
   }
 
@@ -347,7 +344,6 @@ class TestDex implements Dex {
     logWarning("Calling dex.fetchPools()");
     const result = await this.dex.fetchPools();
     this.apiMock[cacheKey] = result;
-    this.updateMockedData();
     return result;
   }
 
@@ -361,7 +357,6 @@ class TestDex implements Dex {
     logWarning("Calling dex.fetchBalances()");
     const result = await this.dex.fetchBalances();
     this.apiMock[cacheKey] = result;
-    this.updateMockedData();
     return result;
   }
 
@@ -388,7 +383,6 @@ class TestDex implements Dex {
     );
     const result = await this.dex.swap(tokenIn, amountIn, tokenOut, amountOut);
     this.apiMock[cacheKey] = result;
-    this.updateMockedData();
     return result;
   }
 }
