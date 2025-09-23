@@ -1,4 +1,8 @@
-interface Price {
+export interface Ctx {
+  now(): Date;
+}
+
+export interface Price {
   date: Date;
   tokenIn: string;
   amountIn: number;
@@ -17,5 +21,3 @@ export interface Trade {
   amountOut: number;
   wasSuccessful: boolean;
 }
-
-export type { Price };

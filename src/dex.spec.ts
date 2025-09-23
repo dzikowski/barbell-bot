@@ -4,12 +4,16 @@ import { galaDex, testDex } from "./dex";
 import { testCrypto } from "./crypto";
 
 void describe("TestDex", () => {
+  const ctx = {
+    now: () => new Date(),
+  };
+
   // one from https://swap.gala.com/leaderboard/
   const wallet = "eth|c32c3526a28a5424c7c0ED999f2CDDA6028a4C91";
 
   void test("should fetch price", async () => {
     // Given
-    const realDex = galaDex(testCrypto(wallet));
+    const realDex = galaDex(testCrypto(wallet), ctx);
     const dex = testDex(realDex);
 
     // When
@@ -22,7 +26,7 @@ void describe("TestDex", () => {
 
   void test("should check the reverse price", async () => {
     // Given
-    const realDex = galaDex(testCrypto(wallet));
+    const realDex = galaDex(testCrypto(wallet), ctx);
     const dex = testDex(realDex);
     const amount = 100;
     const p1 = await dex.fetchSwapPrice("GUSDC", amount, "GALA", undefined);
@@ -42,7 +46,7 @@ void describe("TestDex", () => {
 
   void test("should fetch balances", async () => {
     // Given
-    const realDex = galaDex(testCrypto(wallet));
+    const realDex = galaDex(testCrypto(wallet), ctx);
     const dex = testDex(realDex);
 
     // When

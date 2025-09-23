@@ -1,7 +1,7 @@
 import { GSwap, GalaChainTokenClassKey } from "@gala-chain/gswap-sdk";
 import { Crypto } from "./crypto";
 import { log, logWarning, loggedError } from "./log";
-import { Price } from "./types";
+import { Ctx, Price } from "./types";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
@@ -64,7 +64,10 @@ const SUPPORTED_FEE_RATE = 10_000;
 class GalaDex implements Dex {
   private readonly gswap: GSwap;
 
-  constructor(private readonly crypto: Crypto) {
+  constructor(
+    private readonly crypto: Crypto,
+    private readonly ctx: Ctx,
+  ) {
     this.gswap = new GSwap({ signer: this.crypto.getSigner() });
   }
 
@@ -128,7 +131,7 @@ class GalaDex implements Dex {
       const feeResp = parseFloat(String(respJson.data.fee));
 
       const price: Price = {
-        date: new Date(),
+        date: this.ctx.now(),
         tokenIn,
         tokenOut,
         amountIn: amountInResp,
@@ -233,8 +236,8 @@ class GalaDex implements Dex {
     if (process.env.NO_TRADE) {
       log("    skipping swap because NO_TRADE is set");
       return {
-        date: new Date(),
-        uniqueId: `NO_TRADE_${new Date().toISOString()}`,
+        date: this.ctx.now(),
+        uniqueId: `NO_TRADE_${this.ctx.now().toISOString()}`,
         tokenIn,
         tokenOut,
         amountIn,
@@ -251,7 +254,7 @@ class GalaDex implements Dex {
     );
     log(`    uniqueId: ${response.transactionId}`);
     return {
-      date: new Date(),
+      date: this.ctx.now(),
       uniqueId: response.transactionId,
       tokenIn,
       tokenOut,
@@ -387,8 +390,8 @@ export class TestDex implements Dex {
   }
 }
 
-export function galaDex(crypto: Crypto): Dex {
-  return new GalaDex(crypto);
+export function galaDex(crypto: Crypto, ctx: Ctx): Dex {
+  return new GalaDex(crypto, ctx);
 }
 
 export function testDex(dex: Dex): TestDex {

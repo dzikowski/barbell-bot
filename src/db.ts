@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { logWarning, loggedError } from "./log";
-import { Price } from "./types";
+import { Ctx, Price } from "./types";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
@@ -13,7 +13,7 @@ export interface Db {
 
 class PrismaDb implements Db {
   private prisma: PrismaClient | undefined;
-  constructor() {
+  constructor(private readonly ctx: Ctx) {
     this.prisma = undefined;
   }
 
@@ -59,7 +59,7 @@ class PrismaDb implements Db {
       where: {
         tokenIn: token,
         date: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
+          gte: new Date(this.ctx.now().getTime() - 24 * 60 * 60 * 1000),
         },
       },
     });
@@ -120,7 +120,7 @@ export class TestDb implements Db {
 
   async connect(): Promise<void> {
     const cacheKey = this.getCacheKey("connect");
-    
+
     if (this.dbMock[cacheKey] !== undefined) {
       return;
     }
@@ -133,7 +133,7 @@ export class TestDb implements Db {
 
   async disconnect(): Promise<void> {
     const cacheKey = this.getCacheKey("disconnect");
-    
+
     if (this.dbMock[cacheKey] !== undefined) {
       return;
     }
@@ -146,7 +146,7 @@ export class TestDb implements Db {
 
   async savePrices(prices: Price[]): Promise<void> {
     const cacheKey = this.getCacheKey("savePrices", prices);
-    
+
     if (this.dbMock[cacheKey] !== undefined) {
       return;
     }
@@ -159,7 +159,7 @@ export class TestDb implements Db {
 
   async fetchPrices24h(token: string): Promise<Price[]> {
     const cacheKey = this.getCacheKey("fetchPrices24h", token);
-    
+
     if (this.dbMock[cacheKey]) {
       return this.dbMock[cacheKey] as Price[];
     }
@@ -172,7 +172,10 @@ export class TestDb implements Db {
   }
 }
 
-export const prismaDb = new PrismaDb();
+export function prismaDb(ctx: Ctx): PrismaDb {
+  return new PrismaDb(ctx);
+}
+
 export function testDb(db: Db): TestDb {
   return new TestDb(db);
 }

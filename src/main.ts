@@ -5,15 +5,19 @@ import { logError } from "./log";
 import { TradingService } from "./tradingService";
 
 async function main(): Promise<void> {
+  const ctx = {
+    now: () => new Date(),
+  };
+
   let db: Db | undefined;
 
   try {
     // Setting up
     const crypto = cryptoFromPath(process.env.PRIVATE_KEY_PATH);
-    db = prismaDb;
+    db = prismaDb(ctx);
     await Promise.all([crypto.ensurePrivateKey(), db.connect()]);
 
-    const service = new TradingService(db, galaDex(crypto));
+    const service = new TradingService(db, galaDex(crypto, ctx));
 
     // Bot logic
     const prices = await service.updatePrices();
