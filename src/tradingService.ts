@@ -11,7 +11,10 @@ const tradeGalaAmount = 1_000;
 
 const targetPercentageGala = 75;
 const targetPercentageOther = (100 - targetPercentageGala) / otherTokens.length;
-const tolerance = () => 0.05; // 5%
+const tolerance = (type: "sell" | "buy") =>
+  type === "sell"
+    ? 0.05 // 5% for sell
+    : 0.05; // 5% for buy
 
 interface BalanceInfo {
   token: string;
@@ -250,8 +253,8 @@ export class TradingService {
     }
 
     const totalValueGala = balances.reduce((acc, b) => acc + b.value[gala], 0);
-    const minThereshold = targetPercentageOther * (1 - tolerance());
-    const maxThereshold = targetPercentageOther * (1 + tolerance());
+    const minThereshold = targetPercentageOther * (1 - tolerance("buy"));
+    const maxThereshold = targetPercentageOther * (1 + tolerance("sell"));
     const minStr = `${minOther.token}: ${pperc(minOther.percentageGala)}`;
     const maxStr = `${maxOther.token}: ${pperc(maxOther.percentageGala)}`;
     const trades: SwapResponse[] = [];
