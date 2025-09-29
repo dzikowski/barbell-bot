@@ -14,7 +14,7 @@ const targetPercentageOther = (100 - targetPercentageGala) / otherTokens.length;
 const tolerance = (type: "sell" | "buy") =>
   type === "sell"
     ? 0.05 // 5% for sell
-    : 0.05; // 5% for buy
+    : 0.08; // 5% for buy
 
 interface BalanceInfo {
   token: string;
