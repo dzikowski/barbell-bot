@@ -11,10 +11,12 @@ const tradeGalaAmount = 1_000;
 
 const targetPercentageGala = 75;
 const targetPercentageOther = (100 - targetPercentageGala) / otherTokens.length;
-const tolerance = (type: "sell" | "buy") =>
-  type === "sell"
+
+const tolerance = (type: "sell" | "buy", stats: Stats) => 
+   type === "sell"
     ? 0.03 // 3% for sell
-    : 0.06; // 5% for buy
+    : 0.06 // 5% for buy
+
 
 interface BalanceInfo {
   token: string;
@@ -218,7 +220,7 @@ export class TradingService {
 
   async rebalance(
     balances: BalanceInfo[],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     stats: Stats[],
   ): Promise<SwapResponse[]> {
     this.ctx.log("Rebalancing:\n");
@@ -229,7 +231,9 @@ export class TradingService {
     }
 
     let minOther = undefined;
+    let minOtherStats = undefined;
     let maxOther = undefined;
+    let maxOtherStats = undefined;
 
     for (const balance of balances) {
       if (balance.token !== gala) {
@@ -238,23 +242,25 @@ export class TradingService {
           balance.percentageGala < minOther.percentageGala
         ) {
           minOther = balance;
+          minOtherStats = this.statsForToken(balance.token, stats);
         }
         if (
           maxOther === undefined ||
           balance.percentageGala > maxOther.percentageGala
         ) {
           maxOther = balance;
+          maxOtherStats = this.statsForToken(balance.token, stats);
         }
       }
     }
 
-    if (maxOther === undefined || minOther === undefined) {
+    if (maxOther === undefined || minOther === undefined || maxOtherStats === undefined || minOtherStats === undefined) {
       throw this.ctx.loggedError("No other balance found in provided balances");
     }
 
     const totalValueGala = balances.reduce((acc, b) => acc + b.value[gala], 0);
-    const minThereshold = targetPercentageOther * (1 - tolerance("buy"));
-    const maxThereshold = targetPercentageOther * (1 + tolerance("sell"));
+    const minThereshold = targetPercentageOther * (1 - tolerance("buy", minOtherStats));
+    const maxThereshold = targetPercentageOther * (1 + tolerance("sell", maxOtherStats));
     const minStr = `${minOther.token}: ${pperc(minOther.percentageGala)}`;
     const maxStr = `${maxOther.token}: ${pperc(maxOther.percentageGala)}`;
     const trades: SwapResponse[] = [];
@@ -262,13 +268,13 @@ export class TradingService {
     if (minOther.percentageGala < minThereshold) {
       const percToSpend = targetPercentageOther - minOther.percentageGala;
       const toSpend = Math.round((percToSpend / 100) * totalValueGala);
-      this.ctx.log(`${minStr} is below the threshold: ${pperc(minThereshold)}`);
+      this.ctx.log(`${minStr} is below the threshold: ${pperc(minThereshold)} where last percentage is ${pperc(minOtherStats.lastPercentage)}`);
       this.ctx.log(` => BUYING ${minOther.token} for ${toSpend} ${gala}`);
       const t = await this.dex.swap(gala, toSpend, minOther.token, undefined);
       trades.push(t);
       this.ctx.log("    done!");
     } else {
-      this.ctx.log(`${minStr} is above the threshold: ${pperc(minThereshold)}`);
+      this.ctx.log(`${minStr} is above the threshold: ${pperc(minThereshold)} where last percentage is ${pperc(minOtherStats.lastPercentage)}`);
       this.ctx.log(" => doing nothing");
     }
 
@@ -342,6 +348,14 @@ export class TradingService {
     await this.db.saveTrades(tradeInfos);
 
     this.ctx.log("");
+  }
+
+  statsForToken(token: string, stats: Stats[]): Stats {
+    const s = stats.find(s => s.token === token);
+    if (s === undefined) {
+      throw this.ctx.loggedError(`Stats not found for ${token}`);
+    }
+    return s;
   }
 }
 
