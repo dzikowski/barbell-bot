@@ -21,7 +21,7 @@ async function main(): Promise<void> {
     const prices = await service.updatePrices();
     const stats = await service.calculateStats();
     const balances = await service.fetchBalances(prices);
-    await service.rebalance(balances, stats);
+    // await service.rebalance(balances, stats);
   } finally {
     await db?.disconnect();
   }
