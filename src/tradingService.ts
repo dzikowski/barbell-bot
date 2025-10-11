@@ -7,7 +7,7 @@ const usdt = "GUSDT";
 const gala = "GALA";
 const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX", "GOSMI"];
 
-const tradeGalaAmount = 1;
+const tradeGalaAmount = 1_000;
 
 const targetPercentageGala = 75;
 const targetPercentageOther = (100 - targetPercentageGala) / otherTokens.length;
