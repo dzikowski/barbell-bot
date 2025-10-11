@@ -113,9 +113,9 @@ class GalaDex implements Dex {
         date: this.ctx.now(),
         tokenIn,
         tokenOut,
-        amountIn: amountInResp,
+        amountIn: -amountInResp,
         amountOut: amountOutResp,
-        price: amountOutResp / amountInResp,
+        price: -amountInResp / amountOutResp,
         fee: feeResp,
       };
 
@@ -125,14 +125,14 @@ class GalaDex implements Dex {
       const msg = `Failed to fetch price for ${info}: ${errorMessage}`;
       this.ctx.logError(msg);
 
-      if (tokenIn === "GALA" && tokenOut === "GUSDT") {
+      if (tokenIn === "GALA" && tokenOut === "GUSDT" && amountIn !== undefined) {
         this.ctx.log("GALA/GUSDT detected, assuming 1 GALA = 0.011 USDT");
         return {
           date: this.ctx.now(),
           tokenIn: "GALA",
           tokenOut: "GUSDT",
-          amountIn: 1,
-          amountOut: 0.011,
+          amountIn,
+          amountOut: 0.011 * amountIn,
           price: 0.011,
           fee: 10000,
         };
