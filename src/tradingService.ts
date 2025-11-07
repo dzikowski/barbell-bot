@@ -420,7 +420,7 @@ function pp(t1: string, t2: string, p: number) {
 }
 
 function pnum(n: number) {
-  return n.toFixed(8).padStart(16, " ");
+  return n.toFixed(8).padStart(18, " ");
 }
 
 function pperc(p: number) {

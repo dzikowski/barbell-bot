@@ -113,9 +113,9 @@ class GalaDex implements Dex {
         date: this.ctx.now(),
         tokenIn,
         tokenOut,
-        amountIn: -amountInResp,
-        amountOut: amountOutResp,
-        price: -amountInResp / amountOutResp,
+        amountIn: Math.abs(amountInResp),
+        amountOut: Math.abs(amountOutResp),
+        price: amountIn === undefined ? (-amountInResp / amountOutResp) : (-amountOutResp / amountInResp),
         fee: feeResp,
       };
 
