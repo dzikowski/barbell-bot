@@ -5,7 +5,7 @@ import { Price, Trade } from "./types";
 
 const usdt = "GUSDT";
 const gala = "GALA";
-const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX", "GOSMI", "FILM", "$GMUSIC"];
+const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX", "GOSMI", "FILM", "GMUSIC"];
 
 const tradeGalaAmount = 1_000;
 

@@ -83,14 +83,18 @@ class GalaDex implements Dex {
       );
     }
 
+    function fixToken(token: string): string {
+      return token === "GMUSIC" ? "$GMUSIC" : token;
+    }
+
     const tokenInObj: GalaChainTokenClassKey = {
-      collection: tokenIn,
+      collection: fixToken(tokenIn),
       category: "Unit",
       type: "none",
       additionalKey: "none",
     };
     const tokenOutObj: GalaChainTokenClassKey = {
-      collection: tokenOut,
+      collection: fixToken(tokenOut),
       category: "Unit",
       type: "none",
       additionalKey: "none",
