@@ -39,6 +39,10 @@ export interface SwapResponse {
   amountOut: number | undefined;
 }
 
+function fixToken(token: string): string {
+  return token === "GMUSIC" ? "$GMUSIC" : token;
+}
+
 export interface Dex {
   fetchSwapPrice(
     tokenIn: string,
@@ -81,10 +85,6 @@ class GalaDex implements Dex {
       throw this.ctx.loggedError(
         "Either amountIn or amountOut must be provided",
       );
-    }
-
-    function fixToken(token: string): string {
-      return token === "GMUSIC" ? "$GMUSIC" : token;
     }
 
     const tokenInObj: GalaChainTokenClassKey = {
@@ -214,11 +214,11 @@ class GalaDex implements Dex {
   ): Promise<SwapResponse> {
     const currency = { category: "Unit", type: "none", additionalKey: "none" };
     const tokenInObj: GalaChainTokenClassKey = {
-      collection: tokenIn,
+      collection: fixToken(tokenIn),
       ...currency,
     };
     const tokenOutObj: GalaChainTokenClassKey = {
-      collection: tokenOut,
+      collection: fixToken(tokenOut),
       ...currency,
     };
     const amount =
