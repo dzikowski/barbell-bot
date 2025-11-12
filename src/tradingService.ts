@@ -5,17 +5,17 @@ import { Price, Trade } from "./types";
 
 const usdt = "GUSDT";
 const gala = "GALA";
-const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX", "GOSMI"];
+const otherTokens = ["GWBTC", "GWETH", "GSOL", "GWTRX", "GOSMI", "FILM", "$GMUSIC"];
 
 const tradeGalaAmount = 1_000;
 
-const targetPercentageGala = 75;
+const targetPercentageGala = 65;
 const targetPercentageOther = (100 - targetPercentageGala) / otherTokens.length;
 
 const tolerance = (type: "sell" | "buy", stats: Stats) => 
    type === "sell"
-    ? 0.03 // 3% for sell
-    : 0.06 // 5% for buy
+    ? 0.06 // will sell if the ratio is more than n% * 1.06
+    : 0.06 // will buy if the ratio is less than n% * 0.94
 
 
 interface BalanceInfo {
