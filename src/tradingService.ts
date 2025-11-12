@@ -267,9 +267,10 @@ export class TradingService {
     if (maxOther.percentageGala > maxThereshold) {
       const percToSell = maxOther.percentageGala - targetPercentageOther;
       const toSell = Math.min(tradeGalaAmount, Math.round((percToSell / 100) * totalValueGala));
+      const toSellApprox = Number((toSell * maxOther.price[gala]).toFixed(8));
       this.ctx.log(`${maxStr} is above the threshold: ${pperc(maxThereshold)} where last percentage is ${pperc(maxOtherStats.lastPercentage)}`);
-      this.ctx.log(` => SELLING ${maxOther.token} for ${toSell} ${gala}`);
-      const t = await this.dex.swap(maxOther.token, undefined, gala, toSell);
+      this.ctx.log(` => SELLING ${maxOther.token} for approx ${toSell} ${gala} (${toSellApprox} ${maxOther.token})`);
+      const t = await this.dex.swap(maxOther.token, toSellApprox, gala, undefined);
       this.ctx.log("    done!");
       return t;
     } else {
