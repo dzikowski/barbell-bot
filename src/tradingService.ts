@@ -222,7 +222,7 @@ export class TradingService {
     balances: BalanceInfo[],
      
     stats: Stats[],
-  ): Promise<SwapResponse[]> {
+  ): Promise<SwapResponse | undefined> {
     this.ctx.log("Rebalancing:\n");
 
     const galaBalance = balances.find(b => b.token === gala);
@@ -263,31 +263,15 @@ export class TradingService {
     const maxThereshold = targetPercentageOther * (1 + tolerance("sell", maxOtherStats));
     const minStr = `${minOther.token}: ${pperc(minOther.percentageGala)}`;
     const maxStr = `${maxOther.token}: ${pperc(maxOther.percentageGala)}`;
-    const trades: SwapResponse[] = [];
-
-    if (minOther.percentageGala < minThereshold) {
-      const percToSpend = targetPercentageOther - minOther.percentageGala;
-      const toSpend = Math.round((percToSpend / 100) * totalValueGala);
-      this.ctx.log(`${minStr} is below the threshold: ${pperc(minThereshold)} where last percentage is ${pperc(minOtherStats.lastPercentage)}`);
-      this.ctx.log(` => BUYING ${minOther.token} for ${toSpend} ${gala}`);
-      const t = await this.dex.swap(gala, toSpend, minOther.token, undefined);
-      trades.push(t);
-      this.ctx.log("    done!");
-    } else {
-      this.ctx.log(`${minStr} is above the threshold: ${pperc(minThereshold)} where last percentage is ${pperc(minOtherStats.lastPercentage)}`);
-      this.ctx.log(" => doing nothing");
-    }
-
-    this.ctx.log("");
 
     if (maxOther.percentageGala > maxThereshold) {
       const percToSell = maxOther.percentageGala - targetPercentageOther;
-      const toSell = Math.round((percToSell / 100) * totalValueGala);
+      const toSell = Math.min(tradeGalaAmount, Math.round((percToSell / 100) * totalValueGala));
       this.ctx.log(`${maxStr} is above the threshold: ${pperc(maxThereshold)} where last percentage is ${pperc(maxOtherStats.lastPercentage)}`);
       this.ctx.log(` => SELLING ${maxOther.token} for ${toSell} ${gala}`);
       const t = await this.dex.swap(maxOther.token, undefined, gala, toSell);
-      trades.push(t);
       this.ctx.log("    done!");
+      return t;
     } else {
       this.ctx.log(`${maxStr} is below the threshold: ${pperc(maxThereshold)} where last percentage is ${pperc(maxOtherStats.lastPercentage)}`);
       this.ctx.log(" => doing nothing");
@@ -295,7 +279,22 @@ export class TradingService {
 
     this.ctx.log("");
 
-    return trades;
+    if (minOther.percentageGala < minThereshold) {
+      const percToSpend = targetPercentageOther - minOther.percentageGala;
+      const toSpend = Math.min(tradeGalaAmount, Math.round((percToSpend / 100) * totalValueGala));
+      this.ctx.log(`${minStr} is below the threshold: ${pperc(minThereshold)} where last percentage is ${pperc(minOtherStats.lastPercentage)}`);
+      this.ctx.log(` => BUYING ${minOther.token} for ${toSpend} ${gala}`);
+      const t = await this.dex.swap(gala, toSpend, minOther.token, undefined);
+      this.ctx.log("    done!");
+      return t;
+    } else {
+      this.ctx.log(`${minStr} is above the threshold: ${pperc(minThereshold)} where last percentage is ${pperc(minOtherStats.lastPercentage)}`);
+      this.ctx.log(" => doing nothing");
+    }
+
+    this.ctx.log("");
+
+    return undefined;
   }
 
   async saveTrades(
@@ -351,11 +350,11 @@ export class TradingService {
   }
 
   statsForToken(token: string, stats: Stats[]): Stats {
-    const s = stats.find(s => s.token === token);
-    if (s === undefined) {
+    const st = stats.find(s => s.token === token);
+    if (st === undefined) {
       throw this.ctx.loggedError(`Stats not found for ${token}`);
     }
-    return s;
+    return st;
   }
 }
 

@@ -65,12 +65,7 @@ void describe("Main", () => {
     const prices = await service.updatePrices();
     const stats = await service.calculateStats();
     const balances = await service.fetchBalances(prices);
-    const trades = await service.rebalance(balances, stats);
-
-    if (trades.length > 0) {
-      const newBalances = await service.fetchBalances(prices);
-      await service.saveTrades(balances, newBalances, trades);
-    }
+    await service.rebalance(balances, stats);
 
     // Then
     assert.strictEqual(ctx.getLogs(), expectedLogs);
