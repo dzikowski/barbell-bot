@@ -39,10 +39,6 @@ export interface SwapResponse {
   amountOut: number | undefined;
 }
 
-function fixToken(token: string): string {
-  return token === "GMUSIC" ? "$GMUSIC" : token;
-}
-
 export interface Dex {
   fetchSwapPrice(
     tokenIn: string,
@@ -63,7 +59,49 @@ export interface Dex {
   ): Promise<SwapResponse>;
 }
 
-const SUPPORTED_FEE_RATE = 10_000;
+function getSupportedFeeRate(tokens: string[]): number {
+  if (tokens.includes("BENE") || tokens.includes("GDOG")) {
+    return 3_000;
+  }
+  return 10_000;
+}
+
+function getTokenClassKey(token: string): GalaChainTokenClassKey {
+  if (token === "BENE") {
+    return {
+      collection: "Token",
+      category: "Unit",
+      type: "BENE",
+      additionalKey: "client:5c806869e7fd0e2384461ce9",
+    };
+  }
+
+  if (token === "GDOG") {
+    return {
+      collection: "Token",
+      category: "Unit",
+      type: "GDOG",
+      additionalKey: "eth:902Ef7566c8A8bEe5517FdEC0D7b5d1157942830",
+    };
+  }
+
+  if (token === "GMUSIC") {
+    return {
+      collection: "$GMUSIC",
+      category: "Unit",
+      type: "none",
+      additionalKey: "none",
+    };
+  }
+
+  // assuming currency token
+  return {
+    collection: token,
+    category: "Unit",
+    type: "none",
+    additionalKey: "none",
+  };
+}
 
 class GalaDex implements Dex {
   private readonly gswap: GSwap;
@@ -87,26 +125,26 @@ class GalaDex implements Dex {
       );
     }
 
-    const tokenInObj: GalaChainTokenClassKey = {
-      collection: fixToken(tokenIn),
-      category: "Unit",
-      type: "none",
-      additionalKey: "none",
-    };
-    const tokenOutObj: GalaChainTokenClassKey = {
-      collection: fixToken(tokenOut),
-      category: "Unit",
-      type: "none",
-      additionalKey: "none",
-    };
-    const fee = SUPPORTED_FEE_RATE;
+    const tokenInObj = getTokenClassKey(tokenIn);
+    const tokenOutObj = getTokenClassKey(tokenOut);
+    const fee = getSupportedFeeRate([tokenIn, tokenOut]);
 
-    const info = `${tokenIn}/${amountIn}, ${amountIn ?? "-"}/${amountOut ?? "-"}, ${SUPPORTED_FEE_RATE / 10_000}%`;
-    
+    const info = `${tokenIn}/${amountIn}, ${amountIn ?? "-"}/${amountOut ?? "-"}, ${fee / 10_000}%`;
+
     try {
-      const quoteOperation = amountIn 
-       ? this.gswap.quoting.quoteExactInput(tokenInObj, tokenOutObj, amountIn, fee) 
-       : this.gswap.quoting.quoteExactOutput(tokenInObj, tokenOutObj, amountOut ?? 0, fee);
+      const quoteOperation = amountIn
+        ? this.gswap.quoting.quoteExactInput(
+            tokenInObj,
+            tokenOutObj,
+            amountIn,
+            fee,
+          )
+        : this.gswap.quoting.quoteExactOutput(
+            tokenInObj,
+            tokenOutObj,
+            amountOut ?? 0,
+            fee,
+          );
       const quote = await quoteOperation;
 
       const amountInResp = parseFloat(String(quote.amount0));
@@ -119,7 +157,10 @@ class GalaDex implements Dex {
         tokenOut,
         amountIn: Math.abs(amountInResp),
         amountOut: Math.abs(amountOutResp),
-        price: amountIn === undefined ? (-amountInResp / amountOutResp) : (-amountOutResp / amountInResp),
+        price:
+          amountIn === undefined
+            ? -amountInResp / amountOutResp
+            : -amountOutResp / amountInResp,
         fee: feeResp,
       };
 
@@ -129,7 +170,11 @@ class GalaDex implements Dex {
       const msg = `Failed to fetch price for ${info}: ${errorMessage}`;
       this.ctx.logError(msg);
 
-      if (tokenIn === "GALA" && tokenOut === "GUSDT" && amountIn !== undefined) {
+      if (
+        tokenIn === "GALA" &&
+        tokenOut === "GUSDT" &&
+        amountIn !== undefined
+      ) {
         this.ctx.log("GALA/GUSDT detected, assuming 1 GALA = 0.011 USDT");
         return {
           date: this.ctx.now(),
@@ -212,20 +257,14 @@ class GalaDex implements Dex {
     tokenOut: string,
     amountOut: number | undefined,
   ): Promise<SwapResponse> {
-    const currency = { category: "Unit", type: "none", additionalKey: "none" };
-    const tokenInObj: GalaChainTokenClassKey = {
-      collection: fixToken(tokenIn),
-      ...currency,
-    };
-    const tokenOutObj: GalaChainTokenClassKey = {
-      collection: fixToken(tokenOut),
-      ...currency,
-    };
+    const tokenInObj = getTokenClassKey(tokenIn);
+    const tokenOutObj = getTokenClassKey(tokenOut);
+    const fee = getSupportedFeeRate([tokenIn, tokenOut]);
+
     const amount =
       amountIn === undefined
         ? { exactOut: amountOut ?? 0 }
         : { exactIn: amountIn };
-    const fee = SUPPORTED_FEE_RATE;
     const wallet = this.crypto.getWallet();
 
     this.ctx.log(

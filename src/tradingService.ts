@@ -13,11 +13,13 @@ const otherTokens = [
   "GOSMI",
   "FILM",
   "GMUSIC",
+  "BENE",
+  "GDOG"
 ];
 
 const tradeGalaAmount = 1_000;
 
-const targetPercentageGala = 65;
+const targetPercentageGala = 50;
 const targetPercentageOther = (100 - targetPercentageGala) / otherTokens.length;
 
 const tolerance = (type: "sell" | "buy", stats: Stats) =>
