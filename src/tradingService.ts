@@ -55,7 +55,7 @@ interface Stats {
 
 export class TradingService {
   constructor(
-    private readonly db: Db,
+    private readonly db: Db | undefined,
     private readonly dex: Dex,
     private readonly ctx: Ctx,
   ) {}
@@ -86,7 +86,11 @@ export class TradingService {
     this.ctx.log("");
 
     const prices: Price[] = [galaUsdt, ...otherPrices];
-    await this.db.savePrices(prices);
+    if (this.db) {
+      await this.db.savePrices(prices);
+    } else {
+      this.ctx.logWarning("Database disabled, skipping savePrices");
+    }
 
     return prices;
   }
@@ -95,8 +99,34 @@ export class TradingService {
     this.ctx.log("Stats:\n");
     const stats: Stats[] = await Promise.all(
       otherTokens.map(async t => {
+        if (this.db === undefined) {
+          this.ctx.logWarning(`Database disabled, returning empty stats for ${t}`);
+          return {
+            token: t,
+            count: 0,
+            avg: 0,
+            lastPrice: 0,
+            std: 0,
+            stdPercentage: 0,
+            lastPercentage: 0,
+            lastPercentageSign: "unknown",
+          };
+        }
+
         const ps24h = await this.db.fetchPrices24h(t);
         const count = ps24h.length;
+        if (count === 0) {
+          return {
+            token: t,
+            count: 0,
+            avg: 0,
+            lastPrice: 0,
+            std: 0,
+            stdPercentage: 0,
+            lastPercentage: 0,
+            lastPercentageSign: "unknown",
+          };
+        }
         const avg = ps24h.reduce((acc, p) => acc + p.price, 0) / count;
         const std = Math.sqrt(
           ps24h.reduce((acc, p) => acc + Math.pow(p.price - avg, 2), 0) / count,
@@ -382,7 +412,11 @@ export class TradingService {
       );
     });
 
-    await this.db.saveTrades(tradeInfos);
+    if (this.db) {
+      await this.db.saveTrades(tradeInfos);
+    } else {
+      this.ctx.logWarning("Database disabled, skipping saveTrades");
+    }
 
     this.ctx.log("");
   }

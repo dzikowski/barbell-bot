@@ -12,8 +12,15 @@ async function main(): Promise<void> {
   try {
     // Setting up
     const crypto = cryptoFromPath(process.env.PRIVATE_KEY_PATH, ctx);
-    db = prismaDb(ctx);
-    await Promise.all([crypto.ensurePrivateKey(), db.connect()]);
+    
+    // Initialize database only if not disabled
+    if (process.env.NO_DB === undefined && process.env.DATABASE_URL !== undefined) {
+      db = prismaDb(ctx);
+      await Promise.all([crypto.ensurePrivateKey(), db.connect()]);
+    } else {
+      ctx.logWarning("Database disabled (NO_DB set or DATABASE_URL not set)");
+      await crypto.ensurePrivateKey();
+    }
 
     const service = new TradingService(db, galaDex(crypto, ctx), ctx);
 
